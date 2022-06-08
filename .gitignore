@@ -1,0 +1,80 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+#Build directory
+build/
+build-release/
+
+elephant-model/
+raptor-model/
+
+#Ply obj pcd files
+*.ply
+*.obj
+*.pcd
+
+#html and js
+*.js
+*.html
+build/mesh.obj
+spartan_recap2.ply
+.git/modules/external_dependencies/CGAL/objects/pack/pack-fd8543cb97c03e3999df99b692d5e6cda65a543d.pack
+
+*.swb
+*.swc
+*.swd
+*.swe
+*.swf
+*.swg
+*.swh
+*.swi
+*.swj
+*.swk
+*.swl
+*.swm
+*.swo
+*.swp
+
