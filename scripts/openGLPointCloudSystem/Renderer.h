@@ -15,6 +15,7 @@ public:
     Renderer(Window& w);
     void DrawPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
     void DrawPoints(std::vector<Point>& points);
+    void DrawPoints(std::vector<Point*>& points);
     void DrawPoints(std::vector<std::vector<Point>>& points);
     void Draw();
     void Draw(std::string filename);

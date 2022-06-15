@@ -1,18 +1,34 @@
 #include "KdTree.h"
 #include <stdexcept>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 KdTree::KdTree(std::vector<Point>& cloud)
 {
     if(cloud.empty())
         throw std::logic_error("Point Cloud is empty! KdTree can not be constructed");
     
+    //std::vector<Point> points;
+    //for(int i =0; i < cloud.size(); i++)
+    //    points.push_back(*cloud[i]);
+
     _root  = new Node(cloud[0],ALLIGNMENT::ALLIGN_X);
     build(cloud,1,cloud.size());
 }
+KdTree::KdTree(std::vector<Point*>& cloud)
+{
+    if(cloud.empty())
+        throw std::logic_error("Point Cloud is empty! KdTree can not be constructed");
+    
+    //std::vector<Point> points;
+    //for(int i =0; i < cloud.size(); i++)
+    //    points.push_back(*cloud[i]);
 
+    _root  = new Node(*cloud[0],ALLIGNMENT::ALLIGN_X);
+    build(cloud,1,cloud.size());
+}
 KdTree::~KdTree() {
     //recursively clear left and right children
     help_clear(_root);
@@ -41,18 +57,29 @@ void KdTree::build(std::vector<Point>& cloud, int current, size_t size)
 {
    for(int i = current; i < size; i++){
         Point& p = cloud[i];
+    //std::cout << "p: " << p.x << " " << p.y << " " << p.z << std::endl << std::flush;
         insertNode((*_root),p);
 
    }   
     
 }
 
+void KdTree::build(std::vector<Point*>& cloud, int current, size_t size)
+{
+   for(int i = current; i < size; i++){
+        Point p = *cloud[i];
+        insertNode((*_root),p);
+
+   }   
+    
+}
 void KdTree::insertNode(Node& node,Point& new_point)
 {
 
         ALLIGNMENT allignment = node.allignment;
         
         bool left = false;
+
         switch(allignment) {
           case ALLIGNMENT::ALLIGN_X:
               left = node.current->x > new_point.x;
@@ -70,18 +97,24 @@ void KdTree::insertNode(Node& node,Point& new_point)
 
         if(left){
            if( node.left ){
+               
+               //std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl << std::flush;
                insertNode(*node.left,new_point);
            }
            else {
+                //std::cout << "BBBBBBBBBBBBBBBBBBBBBBBB" << std::endl << std::flush;
                 node.left = new Node(new_point,getNextAllignment(allignment));
            }
 
         } else {
 
            if ( node.right){
+               
+               //std::cout << "CCCCCCCCCCCCCCCCCCCCCCC" << std::endl << std::flush;
                insertNode( *node.right,new_point);
            }
            else {
+               //std::cout << "DDDDDDDDDDDDDDDDDDDDDDDDDD" << std::endl << std::flush;
                node.right  = new Node(new_point,getNextAllignment(allignment));
                
            }
@@ -91,12 +124,19 @@ void KdTree::insertNode(Node& node,Point& new_point)
 
 void KdTree::search(Point& p, Point& result) 
 {
+    using namespace std;
 
+   //std::cout << "SEARCH NEAREST CHILD "<< std::endl << std::flush;
 
     result = searchNearestChild(*_root, p);
+
+  //std::cout << "SEARCH NEAREST CHILD DONE "<< std::endl << std::flush;
     float radius = sqrt(pow(p.x - result.x, 2.0) + pow(p.y - result.y, 2.0) + pow(p.z - result.z, 2.0));
+
+  //std::cout << "RADIUS CALCULATES " << radius<< std::endl << std::flush;
     radiusSearch(p,radius,result);
 
+  //std::cout << "SEARCH NEAREST CHILD "<< std::endl << std::flush;
 }
 void KdTree::radiusSearch(Point& p,float searchRadius, Point& result)
 {
@@ -104,11 +144,13 @@ void KdTree::radiusSearch(Point& p,float searchRadius, Point& result)
 }
 void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result)
 {
+    using namespace std;
+
     if(node.current == nullptr) return;
     if (node.left == nullptr && node.right == nullptr) //then its a leaf
     {
 
-       // std::cout << "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" << searchRadius << std::endl << std::flush;
+    //    std::cout << "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" << searchRadius << std::endl << std::flush;
         float distance = sqrt(pow(node.current->x - p.x, 2.0) + pow(node.current->y - p.y, 2.0) + pow(node.current->z - p.z, 2.0));
         if (distance < searchRadius)
         {
@@ -157,10 +199,10 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
             } 
 
 
-          // std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << searchRadius << std::endl << std::flush;
+      //     std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << searchRadius << std::endl << std::flush;
            if(node.left != nullptr)
                radiusSearch(*(node.left), p, searchRadius, result);
-           //std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" << searchRadius <<std::endl << std::flush;
+        //   std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" << searchRadius <<std::endl << std::flush;
            if(node.right != nullptr)
                radiusSearch(*(node.right), p, searchRadius, result); 
 
@@ -170,7 +212,6 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
         else
         {
 
-           //std::cout << "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl << std::flush;
             if (p_Axis >= node_Axis)
             {
                 float distance = sqrt(pow(node.current->x - p.x, 2.0) + pow(node.current->y - p.y, 2.0) + pow(node.current->z - p.z, 2.0));
@@ -185,7 +226,7 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
                 
                 if(node.right != nullptr)
                     radiusSearch(*(node.right), p, searchRadius, result);
-          // std::cout << "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG" << std::endl << std::flush;
+           //std::cout << "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG" << std::endl << std::flush;
             }
             else
             {
@@ -199,7 +240,7 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
 
                 if(node.left != nullptr) 
                     radiusSearch(*(node.left), p, searchRadius, result);
-          // std::cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl << std::flush;
+           //std::cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl << std::flush;
             }
 
         }
@@ -234,13 +275,13 @@ Point  KdTree::searchNearestChild(Node& node,Point& p)
         }
         
         if (p_Axis >= node_Axis && node.right != nullptr)
-            searchNearestChild(*node.right, p);
+           return searchNearestChild(*node.right, p);
         else if(p_Axis < node_Axis && node.left != nullptr)
-            searchNearestChild(*node.left,p);
+           return  searchNearestChild(*node.left,p);
         else if(node.right != nullptr)
-            searchNearestChild(*node.right, p);
+           return searchNearestChild(*node.right, p);
         else if(node.left != nullptr) 
-            searchNearestChild(*node.left, p);
+           return searchNearestChild(*node.left, p);
         else
             return *node.current;
 
@@ -258,7 +299,7 @@ ALLIGNMENT KdTree::getNextAllignment (ALLIGNMENT allign)
       case ALLIGNMENT::ALLIGN_Z:
           return ALLIGNMENT::ALLIGN_X;
       default:
-          break;
+          return ALLIGNMENT::ALLIGN_X;
     }
 
 }

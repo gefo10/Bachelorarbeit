@@ -71,8 +71,8 @@ target_include_directories(scanner
     # PUBLIC ${OPENGL_INCLUDE_DIRS}
     #PUBLIC ${GLM_INCLUDE_DIRS}
     #PUBLIC ${GLUT_INCLUDE_DIRS}
-    PUBLIC external/imgui
-    PUBLIC external/imgui/backends
+    PUBLIC ../external_dependencies/imgui
+    PUBLIC ../external_dependencies/imgui/backends
     PUBLIC openGLPointCloudSystem
     PUBLIC algorithms
 )

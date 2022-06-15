@@ -1,7 +1,5 @@
 #include <string>
 #include <cstdlib>
-#include <imgui.h>
-#include "imgui_impl_glfw.h"
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -807,6 +805,17 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZ>& cloud)
         re.DrawPoints(points);
 
 }
+void Scanner::view(std::vector<Point*>& frames)
+{
+        Window w(window_width,window_height,window_name.c_str());
+        w.clearScreen();
+
+        Renderer re(w);
+        re.DrawPoints(frames);
+
+}
+
+
 void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 {
         auto points = convert_pcl_points(cloud);
@@ -820,11 +829,12 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 
 
 
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
+std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
 {
-    auto dynamicCloud = convert_pcl_points(sourceCloud);
-    auto staticCloud = convert_pcl_points(targetCloud);
 
+    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
+    auto staticCloud = convert_pcl_points_ptr(targetCloud);
+   
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
@@ -832,10 +842,10 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sour
     return dynamicCloud;
 }
 
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
-    auto dynamicCloud = convert_pcl_points(sourceCloud);
-    auto staticCloud = convert_pcl_points(targetCloud);
+    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
+    auto staticCloud = convert_pcl_points_ptr(targetCloud);
 
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
@@ -848,19 +858,47 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& s
 {
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
+    std::vector<Point> staticFiltered;
+    std::vector<Point> dynamicFiltered;
 
-    
+    std::vector<Point> result;
+    //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
+    //*
+    for(int i = 0; i < dynamicCloud.size(); i++) {
+        if ( dynamicCloud[i].z < 1e-8) {
+            continue;
+        }
+        dynamicFiltered.push_back(dynamicCloud[i]);
+    }
+    for(int i = 0; i < staticCloud.size(); i++) {
+        if ( staticCloud[i].z < 1e-8) {
+            continue;
+        }
+        staticFiltered.push_back(staticCloud[i]);
+    }
+    icp(dynamicFiltered,staticFiltered);
+    dynamicCloud = dynamicFiltered;
+    staticCloud = staticFiltered;
+    //*/
+    for(int i = 0; i < dynamicCloud.size(); i++) {
+        if ( dynamicCloud[i].z < 1e-8) {
+            continue;
+        }
+        result.push_back(dynamicCloud[i]);
+    }
+    for(int i = 0; i < staticCloud.size(); i++) {
+        if ( staticCloud[i].z < 1e-8) {
+            continue;
+        }
+        result.push_back(staticCloud[i]);
+    }
 
-    icp(dynamicCloud,staticCloud);
-    for(int i = 0; i < staticCloud.size(); i++)
-        dynamicCloud.push_back(staticCloud[i]);
-
-    return dynamicCloud;
+    return result;
 }
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
-    auto dynamicCloud = convert_pcl_points(sourceCloud);
-    auto staticCloud = convert_pcl_points(targetCloud);
+    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
+    auto staticCloud = convert_pcl_points_ptr(targetCloud);
 
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
@@ -869,13 +907,34 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& source
     return dynamicCloud;  
 }
 
-void Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
+std::vector<Point*> Scanner::allign_ICP(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud)
 {
 
     icp(sourceCloud,targetCloud);
     for(int i = 0; i < targetCloud.size(); i++)
         sourceCloud.push_back(targetCloud[i]);
 
+    return sourceCloud;
+
+}
+
+std::vector<Point*> Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
+{
+    std::vector<Point*> source;
+    std::vector<Point*> target;
+
+    for(int i = 0; i < sourceCloud.size(); i++)
+        source.push_back(&sourceCloud[i]);
+
+    for(int i = 0; i < targetCloud.size(); i++)
+        target.push_back(&targetCloud[i]);
+
+
+    icp(source,target);
+    for(int i = 0; i < target.size(); i++)
+        source.push_back(target[i]);
+
+    return source;
 }
 
 //void Scanner::view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
@@ -900,3 +959,157 @@ void Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& tar
 //
 //}
 //
+
+std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
+{
+    std::vector<Point*> points;
+     for(unsigned int i = 0; i < cloud->points.size(); i++) {
+        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
+            Point p;
+            p.x = cloud->points[i].x;
+            p.y = cloud->points[i].y;
+            p.z = cloud->points[i].z;
+            p.r = static_cast<float>(cloud->points[i].r) / 255;
+            p.g = static_cast<float>(cloud->points[i].g) / 255;
+            p.b = static_cast<float>(cloud->points[i].b) / 255;
+            points.push_back(&p);
+        //}
+   }
+
+     return points;
+}
+std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
+{
+    std::vector<Point*> points;
+     for(unsigned int i = 0; i < cloud.points.size(); i++) {
+        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
+            Point p;
+            p.x = cloud.points[i].x;
+            p.y = cloud.points[i].y;
+            p.z = cloud.points[i].z;
+            p.r = static_cast<float>(cloud.points[i].r) / 255;
+            p.g = static_cast<float>(cloud.points[i].g) / 255;
+            p.b = static_cast<float>(cloud.points[i].b) / 255;
+            points.push_back(&p);
+        //}
+   }
+
+     return points;
+}
+std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZ>& cloud)
+{
+    std::vector<Point*> points;
+     for(unsigned int i = 0; i < cloud.points.size(); i++) {
+        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
+            Point p;
+            p.x = cloud.points[i].x;
+            p.y = cloud.points[i].y;
+            p.z = cloud.points[i].z;
+            //p.r = static_cast<float>(cloud->points[i].r) / 255;
+            //p.g = static_cast<float>(cloud->points[i].g) / 255;
+            //p.b = static_cast<float>(cloud->points[i].b) / 255;
+            points.push_back(&p);
+        //}
+   }
+
+     return points;
+}
+std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
+{
+    std::vector<Point*> points;
+     for(unsigned int i = 0; i < cloud->points.size(); i++) {
+        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
+            Point p;
+            p.x = cloud->points[i].x;
+            p.y = cloud->points[i].y;
+            p.z = cloud->points[i].z;
+            //p.r = static_cast<float>(cloud->points[i].r) / 255;
+            //p.g = static_cast<float>(cloud->points[i].g) / 255;
+            //p.b = static_cast<float>(cloud->points[i].b) / 255;
+            points.push_back(&p);
+        //}
+   }
+
+     return points;
+}
+
+std::vector<std::vector<Point*>> Scanner::convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& frames)
+{
+     std::vector<std::vector<Point*>> frames_new;
+     for(unsigned int i = 0; i < frames.size(); i++) {
+         std::vector<Point*> frame;
+         for(unsigned int j = 0 ; j < frames[i]->size(); j++) {
+            Point p;
+            p.x = frames[i]->points[j].x;
+            p.y = frames[i]->points[j].y;
+            p.z = frames[i]->points[j].z;
+            //p.r = static_cast<float>(cloud->points[i].r) / 255;
+            //p.g = static_cast<float>(cloud->points[i].g) / 255;
+            //p.b = static_cast<float>(cloud->points[i].b) / 255;
+            frame.push_back(&p);
+         }
+         frames_new.push_back(frame);
+   }
+
+     return frames_new;
+}
+std::vector<std::vector<Point*>> Scanner::convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZ>>& frames)
+{
+     std::vector<std::vector<Point*>> frames_new;
+     for(unsigned int i = 0; i < frames.size(); i++) {
+         std::vector<Point*> frame;
+         for(unsigned int j = 0 ; j < frames[i].size(); j++) {
+            Point p;
+            p.x = frames[i].points[j].x;
+            p.y = frames[i].points[j].y;
+            p.z = frames[i].points[j].z;
+            //p.r = static_cast<float>(cloud->points[i].r) / 255;
+            //p.g = static_cast<float>(cloud->points[i].g) / 255;
+            //p.b = static_cast<float>(cloud->points[i].b) / 255;
+            frame.push_back(&p);
+         }
+         frames_new.push_back(frame);
+   }
+
+     return frames_new;
+}
+std::vector<std::vector<Point*>> Scanner::convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& frames)
+{
+     std::vector<std::vector<Point*>> frames_new;
+     for(unsigned int i = 0; i < frames.size(); i++) {
+         std::vector<Point*> frame;
+         for(unsigned int j = 0 ; j < frames[i]->size(); j++) {
+            Point p;
+            p.x = frames[i]->points[j].x;
+            p.y = frames[i]->points[j].y;
+            p.z = frames[i]->points[j].z;
+            p.r = static_cast<float>(frames[i]->points[j].r) / 255;
+            p.g = static_cast<float>(frames[i]->points[j].g) / 255;
+            p.b = static_cast<float>(frames[i]->points[j].b) / 255;
+            frame.push_back(&p);
+         }
+         frames_new.push_back(frame);
+   }
+
+     return frames_new;
+}
+std::vector<std::vector<Point*>> Scanner::convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& frames)
+{
+     std::vector<std::vector<Point*>> frames_new;
+     for(unsigned int i = 0; i < frames.size(); i++) {
+         std::vector<Point*> frame;
+         for(unsigned int j = 0 ; j < frames[i].size(); j++) {
+            Point p;
+            p.x = frames[i].points[j].x;
+            p.y = frames[i].points[j].y;
+            p.z = frames[i].points[j].z;
+            p.r = static_cast<float>(frames[i].points[j].r) / 255;
+            p.g = static_cast<float>(frames[i].points[j].g) / 255;
+            p.b = static_cast<float>(frames[i].points[j].b) / 255;
+            frame.push_back(&p);
+         }
+         frames_new.push_back(frame);
+   }
+
+     return frames_new;
+}

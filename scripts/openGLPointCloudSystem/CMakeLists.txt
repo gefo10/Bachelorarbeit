@@ -17,7 +17,8 @@ add_subdirectory(external)
 #include_directories(external_dependencies/imgui/ external_dependencies/imgui/backends/)
 
 target_include_directories(myLibrary
-    PUBLIC external
+    #PUBLIC external
+    PUBLIC ../../external_dependencies
     PUBLIC ${GLEW_INCLUDE_DIRS}
     PUBLIC ${PCL_INCLUDE_DIRS}
 )

@@ -14,6 +14,11 @@ endif (WIN32)
 
 
 
+set(GCC_COMPILE_FLAGS "-g -ggdb3")
+
+add_definitions(${GCC_COMPILE_FLAGS})
+
+
 
 find_package(Eigen3 3.3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
@@ -96,4 +101,7 @@ set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES}  pcl_helper scanner)
 #set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES} glfw ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} pcl_helper scanner Threads::Threads)
 
 target_link_libraries(main ${EXTERNAL_DEPENDENCIES})
+
+add_executable(TestJson testJson.cpp)
+target_link_libraries(TestJson ${AndreiUtils_LIBRARY})
 

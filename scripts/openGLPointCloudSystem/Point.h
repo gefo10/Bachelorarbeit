@@ -32,6 +32,9 @@ struct Point {
         this->x = p.x;
         this->y = p.y;
         this->z = p.z;
+        this->r = p.r;
+        this->g = p.g;
+        this->b = p.b;
 
         return *this;
     }

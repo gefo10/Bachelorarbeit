@@ -54,7 +54,7 @@ class Scanner {
     //save a pointloud as PCD file
     //#####################################################
     template <typename PointT>
-    void save(typename pcl::PointCloud<PointT> frame,std::string file_name)
+    void save(typename pcl::PointCloud<PointT>& frame,std::string file_name)
     {
         pcl::io::savePCDFileASCII(file_name.c_str(), frame);       
     }
@@ -85,13 +85,14 @@ class Scanner {
     //Overloaded functions for the ICP algorithm
     //####################################################################################################################
 
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
+    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
 
     std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
     
-    void allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
+    std::vector<Point*> allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
+    std::vector<Point*> allign_ICP(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud);
     //########################################################################################################################
     
 
@@ -107,6 +108,7 @@ class Scanner {
     void view(std::vector<pcl::PointCloud<pcl::PointXYZ>>& frames);
     void view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& frames);
     void view(std::vector<Point>& frames);
+    void view(std::vector<Point*>& frames);
     //#############################################################################
     
    // void view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
@@ -128,6 +130,24 @@ class Scanner {
     std::vector<std::vector<Point>> convert_pcl_points(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cloud);
     std::vector<std::vector<Point>> convert_pcl_points(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& cloud);
     std::vector<std::vector<Point>> convert_pcl_points(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& cloud);
+    //###################################################################################################################
+
+     //####################################################################################
+    //helpers to convert pointclouds from pcl to std::vector<Point*> (locally defined)
+    //######################################################################################
+    std::vector<Point*> convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
+    std::vector<Point*> convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+    std::vector<Point*> convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZ>& cloud);
+    std::vector<Point*> convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZRGB>& cloud);
+    //####################################################################################
+
+    //########################################################################################################
+    //helpers to convert multiple frames of captured pointclouds to std::vector<Point> (contained in a second std::vector)
+    //#################################################################################################################
+    std::vector<std::vector<Point*>> convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZ>>& cloud);
+    std::vector<std::vector<Point*>> convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cloud);
+    std::vector<std::vector<Point*>> convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& cloud);
+    std::vector<std::vector<Point*>> convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& cloud);
     //###################################################################################################################
 
     float window_width;

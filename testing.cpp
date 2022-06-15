@@ -37,29 +37,56 @@ int main(int argc, char** argv) {
     
     
     std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
-  //  std::string model2("../spartan_recap2.ply");
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    //std::string model2("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
-   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
-   // pcl::PolygonMesh poly;
     Scanner sc(1920,780,"PointCloud");
+    sc.load<pcl::PointXYZRGB>("pc_captured10.pcd",cloud);
+
+
+    sc.load<pcl::PointXYZRGB>("pc_captured11.pcd",cloud2);
+  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
+  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
+
+
+
+// for(int i = 0 ;i < cloud->points.size(); i++)
+//  {
+//      cloud->points[i].r = 255;
+//      cloud->points[i].g = 0;
+//      cloud->points[i].b = 0;
+//  }
+//
+//
+//  //std::cout << "1ST DONE "<< std::endl << std::flush;
+//  for(int i = 0 ;i < cloud2->points.size(); i++)
+//  {
+//      cloud2->points[i].r = 0;
+//      cloud2->points[i].g = 0;
+//      cloud2->points[i].b = 255;
+//  }
+//  //std::cout << "2ST DONE "<< std::endl << std::flush;
+  // 
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
+   // pcl::PolygonMesh poly;
     //sc.load_obj("mesh.obj");
 
-    auto res = sc.allign_ICP(cloud_ptr,cloud_ptr2);
+//    sc.view(cloud);
+//    sc.view(cloud2);
+    auto res = sc.allign_ICP(cloud,cloud2);
     sc.view(res);
     
 
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
-
+    
 
  // if (pcl::io::loadPCDFile<pcl::PointXYZRGB> ("test_pcd.pcd", *cloud2) == -1) //* load the file
  // {
  //   PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
  //   return (-1);
  //}
-   //sc.load<pcl::PointXYZRGB>("test_pcd.pcd",cloud2);
   // sc.view(cloud2);
    Point p{0.121f, 0.03f, 0.f};
    Point p1{0.12f,0.02f,0.0f};
@@ -67,9 +94,17 @@ int main(int argc, char** argv) {
    Point p3{-0.12f, -2.01f,0.0f};
    Point p4{ 0.12f,-2.01f, 0.0f};
 
-
-
-
+//    auto frames = sc.capture_PcRGBData(true);
+//   
+//    std::string filename{"pc_captured"};
+//
+//   for(int i = 0 ; i< frames.size(); i++)
+//    {
+//        std::string filename_toUse = filename + std::to_string(i) + ".pcd";
+//        std::cout << filename_toUse << std::endl;
+//        sc.save<pcl::PointXYZRGB>(*frames[i],filename_toUse);
+//    }
+//
  // std::vector<Point> cloud{p,p1,p2,p3,p4};
  // KdTree tree(cloud);
    
@@ -82,22 +117,22 @@ int main(int argc, char** argv) {
  //  std::cout << "x:" << result.x << " y:" << result.y << " z:" << result.z << std::endl;
     
 
-   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_test = sc.captureOnce_PcRGBData(true);
-  // std::pair<pcl::PointCloud<pcl::PointXYZRGB>::Ptr,pcl::PointCloud<pcl::PointXYZRGB>::Ptr> segmentation = pcl_helpers::ransac_impl<pcl::PointXYZRGB>(cloud2,1000,0.5f);
-  // cloud2->points.clear();
-  //  for(int i = 0; i < segmentation.first->points.size(); i++) {
-  //      segmentation.first->points[i].r = 0;
-  //      segmentation.first->points[i].g = 0;
-  //      segmentation.first->points[i].b = 255;
-  //      cloud2->points.push_back(segmentation.first->points[i]);
-  //  }
-  //  for(int i = 0; i < segmentation.second->points.size(); i++) {
-  //      segmentation.second->points[i].r = 255;
-  //      segmentation.second->points[i].g = 0;
-  //      segmentation.second->points[i].b = 0;
-  //      cloud2->points.push_back(segmentation.second->points[i]);
-  //  }
-  //  
+ //  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_test = sc.captureOnce_PcRGBData(true);
+ //  std::pair<pcl::PointCloud<pcl::PointXYZRGB>::Ptr,pcl::PointCloud<pcl::PointXYZRGB>::Ptr> segmentation = pcl_helpers::ransac_impl<pcl::PointXYZRGB>(cloud2,400,0.5f);
+ //  cloud2->points.clear();
+ //   for(int i = 0; i < segmentation.first->points.size(); i++) {
+ //      segmentation.first->points[i].r = 0;
+ //      segmentation.first->points[i].g = 0;
+ //      segmentation.first->points[i].b = 255;
+ //      cloud2->points.push_back(segmentation.first->points[i]);
+ //  }
+ //  for(int i = 0; i < segmentation.second->points.size(); i++) {
+ //      segmentation.second->points[i].r = 255;
+ //      segmentation.second->points[i].g = 0;
+ //      segmentation.second->points[i].b = 0;
+ //      cloud2->points.push_back(segmentation.second->points[i]);
+ //  }
+ //  
     
     //sc.record_pointcloudFrames("record");
 
@@ -105,7 +140,7 @@ int main(int argc, char** argv) {
 
     //pcl_helpers::fastTriangulation(cloud_ptr,normals);
     
-  //  sc.view<pcl::PointXYZRGB>(cloud2);
+   // sc.view(cloud2);
     
     return EXIT_SUCCESS;
 }

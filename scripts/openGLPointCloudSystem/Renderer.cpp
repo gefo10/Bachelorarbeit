@@ -114,6 +114,56 @@ void Renderer::Draw(std::string filename)
    
 }
 
+void Renderer::DrawPoints(std::vector<Point*>& points)
+{
+   VertexArray vao;
+   
+   std::vector<Point> cloud;
+   for(int i =0; i < points.size(); i++)
+   {
+       cloud.push_back(*points[i]);
+   }
+   VertexBuffer vb(&cloud[0],points.size()*sizeof(Point));
+   
+    VertexBufferLayout layout;
+    layout.Push(3,false,VertexBufferLayout::FLOAT);
+    layout.Push(3,false,VertexBufferLayout::FLOAT);
+
+    vao.AddBuffer(vb,layout);
+
+   Shader s("../scripts/openGLPointCloudSystem/PointShader.shader");
+    s.Bind();
+    glm::mat4 mvp = _window->GetProjectionMatrix() *_window->GetCamera().getViewMatrix()*model;
+    s.SetUniform4Mat("MVP",mvp); 
+    float pointSize =2.0f;// _window->GetCamData().radius;//_window->GetWidth()/640;
+
+    double lastTime = glfwGetTime();
+    model =  model *  glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,1.0f,0.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,0.0f,1.0f)) * glm::scale(glm::mat4(1.0f),glm::vec3(5.f,5.f,5.f));
+    glPointSize(3 *(_window->GetWidth() /  _window->GetHeight()));
+
+    //model = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f,0.0f,2.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(0.f,1.0f,0.f))*  glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(1.f,0.0f,0.f))*glm::scale(glm::mat4(1.0f),glm::vec3(1.0f,1.0f,1.0f));
+    while(!_window->shouldClose()){
+       
+        _window->clearScreen(); 
+        _window->showFPS();
+        double currentTime = glfwGetTime();
+        double deltaTime = currentTime- lastTime;
+        _window->pollEvents();
+        _window->Update(deltaTime);
+        
+        mvp = _window->GetProjectionMatrix() * _window->GetCamera().getViewMatrix() * model;
+
+        vao.Bind();
+        s.SetUniform4Mat("MVP",mvp);
+
+        glDrawArrays(GL_POINTS,0,points.size());
+        _window->swapBuffers();
+        lastTime = currentTime;
+    }
+   
+}
+
+
 void Renderer::DrawPoints(std::vector<Point>& points)
 {
    VertexArray vao;

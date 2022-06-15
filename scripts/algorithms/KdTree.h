@@ -45,6 +45,7 @@ class KdTree
 {
 public:
     KdTree(std::vector<Point>& cloud);
+    KdTree(std::vector<Point*>& cloud);
    ~KdTree();
     ALLIGNMENT getNextAllignment(ALLIGNMENT allign);
     //ALLIGNMENT getNextAllignment();
@@ -53,6 +54,7 @@ public:
 
     //virtual ~KdTree();
     void build(std::vector<Point>& cloud, int current,size_t size);
+    void build(std::vector<Point*>& cloud, int current,size_t size);
     
     void search(Point& p,Point& result);
     void radiusSearch(Point& p, float searchRadius,Point& result);
