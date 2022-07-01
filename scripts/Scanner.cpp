@@ -8,7 +8,7 @@
 
 #include "Scanner.h"
 #include "pcl_helper.h"
-#include "ICP.h"
+//#include "ICP.h"
 
 PC_SIMPLE::Ptr Scanner::captureOnce_PcData(bool show) try
 {
@@ -48,11 +48,14 @@ PC_SIMPLE::Ptr Scanner::captureOnce_PcData(bool show) try
 } catch(const rs2::error& e)
 {
     std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return nullptr;
 
 } catch(const std::exception& e)
 {
     std::cerr << e.what() << std::endl;
+    return nullptr;
 }
+
 
 
 std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
@@ -132,10 +135,12 @@ std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
 } catch(const rs2::error& e)
 {
     std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return std::vector<PC_RGB::Ptr>();
 
 } catch(const std::exception& e)
 {
     std::cerr << e.what() << std::endl;
+    return std::vector<PC_RGB::Ptr>();
 }
 
 
@@ -184,10 +189,12 @@ std::vector<PC_SIMPLE> Scanner::capture_PcData(bool show) try
 } catch(const rs2::error& e)
 {
     std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return {};
 
 } catch(const std::exception& e)
 {
     std::cerr << e.what() << std::endl;
+    return {};
 }
 
 
@@ -261,10 +268,12 @@ PC_RGB::Ptr Scanner::captureOnce_PcRGBData(bool show) try
 } catch(const rs2::error& e)
 {
     std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return nullptr;
 
 } catch(const std::exception& e)
 {
     std::cerr << e.what() << std::endl;
+    return nullptr;
 }
 
 
@@ -829,11 +838,13 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 
 
 
-std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
+std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
 {
+    pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
+    pcl_helpers::statistical_removal(targetCloud,100,0.8f);
 
-    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
-    auto staticCloud = convert_pcl_points_ptr(targetCloud);
+    auto dynamicCloud = convert_pcl_points(sourceCloud);
+    auto staticCloud = convert_pcl_points(targetCloud);
    
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
@@ -842,10 +853,13 @@ std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sou
     return dynamicCloud;
 }
 
-std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
-    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
-    auto staticCloud = convert_pcl_points_ptr(targetCloud);
+    //pcl_helpers::statistical_removal(sourceCloud);
+    //pcl_helpers::statistical_removal(targetCloud);
+
+    auto dynamicCloud = convert_pcl_points(sourceCloud);
+    auto staticCloud = convert_pcl_points(targetCloud);
 
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
@@ -856,49 +870,31 @@ std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCl
 
 std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
 {
+    pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
+    pcl_helpers::statistical_removal(targetCloud,100,0.8f);
+
+    
+
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
-    std::vector<Point> staticFiltered;
-    std::vector<Point> dynamicFiltered;
+    test_cloud_random_shift(dynamicCloud);
 
-    std::vector<Point> result;
     //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
-    //*
-    for(int i = 0; i < dynamicCloud.size(); i++) {
-        if ( dynamicCloud[i].z < 1e-8) {
-            continue;
-        }
-        dynamicFiltered.push_back(dynamicCloud[i]);
-    }
+
+    icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++) {
-        if ( staticCloud[i].z < 1e-8) {
-            continue;
-        }
-        staticFiltered.push_back(staticCloud[i]);
-    }
-    icp(dynamicFiltered,staticFiltered);
-    dynamicCloud = dynamicFiltered;
-    staticCloud = staticFiltered;
-    //*/
-    for(int i = 0; i < dynamicCloud.size(); i++) {
-        if ( dynamicCloud[i].z < 1e-8) {
-            continue;
-        }
-        result.push_back(dynamicCloud[i]);
-    }
-    for(int i = 0; i < staticCloud.size(); i++) {
-        if ( staticCloud[i].z < 1e-8) {
-            continue;
-        }
-        result.push_back(staticCloud[i]);
+        dynamicCloud.push_back(staticCloud[i]);
     }
 
-    return result;
+    return dynamicCloud;
 }
-std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
-    auto dynamicCloud = convert_pcl_points_ptr(sourceCloud);
-    auto staticCloud = convert_pcl_points_ptr(targetCloud);
+    //pcl_helpers::statistical_removal(sourceCloud);
+    //pcl_helpers::statistical_removal(targetCloud);
+
+    auto dynamicCloud = convert_pcl_points(sourceCloud);
+    auto staticCloud = convert_pcl_points(targetCloud);
 
     icp(dynamicCloud,staticCloud);
     for(int i = 0; i < staticCloud.size(); i++)
@@ -907,7 +903,7 @@ std::vector<Point*> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourc
     return dynamicCloud;  
 }
 
-std::vector<Point*> Scanner::allign_ICP(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud)
+std::vector<Point> Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
 {
 
     icp(sourceCloud,targetCloud);
@@ -916,25 +912,6 @@ std::vector<Point*> Scanner::allign_ICP(std::vector<Point*>& sourceCloud,std::ve
 
     return sourceCloud;
 
-}
-
-std::vector<Point*> Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
-{
-    std::vector<Point*> source;
-    std::vector<Point*> target;
-
-    for(int i = 0; i < sourceCloud.size(); i++)
-        source.push_back(&sourceCloud[i]);
-
-    for(int i = 0; i < targetCloud.size(); i++)
-        target.push_back(&targetCloud[i]);
-
-
-    icp(source,target);
-    for(int i = 0; i < target.size(); i++)
-        source.push_back(target[i]);
-
-    return source;
 }
 
 //void Scanner::view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
@@ -1113,3 +1090,118 @@ std::vector<std::vector<Point*>> Scanner::convert_pcl_points_ptr(std::vector<pcl
 
      return frames_new;
 }
+
+
+
+
+pcl::PolygonMesh Scanner::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{   
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,1,mesh);
+    return mesh;
+}
+pcl::PolygonMesh Scanner::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{   
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,1,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::gp3Normal_reconstruction(std::vector<Point> cloud)
+{   
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction(cloud,2,1,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,2,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,2,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::gp3Mls_reconstruction(std::vector<Point> cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction(cloud,2,2,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,1,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,1,mesh); 
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::poissonNormal_reconstruction(std::vector<Point> cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction(cloud,1,1,mesh);
+    return mesh;
+
+}
+pcl::PolygonMesh Scanner::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,2,mesh);
+    return mesh;
+
+}
+
+pcl::PolygonMesh Scanner::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,2,mesh);
+    return mesh;
+
+}
+
+pcl::PolygonMesh Scanner::poissonMls_reconstruction(std::vector<Point> cloud)
+{
+    using namespace pcl;
+    using namespace pcl_helpers;
+    PolygonMesh mesh;
+    poisson_gp3_reconstruction(cloud,1,2,mesh);
+    return mesh;
+
+}
+
+

@@ -1,38 +1,39 @@
 #include <iostream>
-#include <Eigen/Dense>
+//#include <Eigen/Dense>
 //#include <pcl/point_types.h>
 
 #include <pcl/filters/passthrough.h>
-#include <pcl/io/pcd_io.h>
-#include <thread>
+//#include <pcl/io/pcd_io.h>
+//#include <thread>
 #include <pcl/io/ply_io.h>
 #include <pcl/console/parse.h>
-#include <pcl/common/transforms.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/common/common_headers.h>
+//#include <pcl/common/transforms.h>
+//#include <pcl/visualization/pcl_visualizer.h>
 #include "pcl_helper.h"
 #include <string>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/surface/gp3.h>
-#include <chrono>
+//#include <pcl/kdtree/kdtree_flann.h>
+//#include <pcl/features/normal_3d.h>
+//#include <pcl/surface/gp3.h>
+//#include <chrono>
 #include <pcl/io/vtk_io.h>
-#include <pcl/io/obj_io.h>
+//#include <pcl/io/obj_io.h>
 #include <pcl/search/kdtree.h> // for KdTree
 #include <pcl/surface/mls.h>
-#include <pcl/surface/poisson.h>
 #include <pcl/console/time.h>
 #include <pcl/console/print.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/conversions.h>
-#include <pcl/features/normal_3d_omp.h>
+//#include <pcl/features/normal_3d_omp.h>
 #include <pcl/features/principal_curvatures.h>
 #include <vector>
 #include <fstream>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
-#include <unordered_set>
+//#include <unordered_set>
+//#include <boost/thread/thread.hpp>
+//#include <pcl/surface/gp3.h>
+//#include <pcl/surface/poisson.h>
 
 void pcl_helpers::testPrint()
 {
@@ -410,7 +411,7 @@ void pcl_helpers::view(pcl::PolygonMesh poly,float red, float green, float blue,
 void pcl_helpers::view(const std::string& filename,float red, float green, float blue, float alpha)
 {
     pcl::PolygonMesh poly;
-    pcl::io::loadOBJFile(filename,poly);
+    pcl::io::loadPLYFile(filename,poly);
     pcl::visualization::PCLVisualizer viewer;
     Color background(red,green,blue,alpha);
     // Set background to a dark grey
@@ -430,7 +431,7 @@ void pcl_helpers::view(const std::string& filename,float red, float green, float
 
 pcl::PointCloud<pcl::PointNormal>::Ptr pcl_helpers::smooth_mls(Cloud_simplePtr& cloud) 
 {
-    // Load input file into a PointCloud<T> with an appropriate type
+    // Load input file into a Pointhresholdoud<T> with an appropriate type
   //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ> ());
   // Load bun0.pcd -- should be available with the PCL archive in test
   // pcl::io::loadPCDFile ("bun0.pcd", *cloud);
@@ -486,8 +487,39 @@ void pcl_helpers::poisson_reconstruction(pcl::PointCloud<pcl::PointNormal>::Ptr&
     print_info("[Done, "); print_value ("%g", tt.toc ()); print_info (" ms]\n");
 }
 
+void pcl_helpers::statistical_removal(Cloud_rgbPtr& input,int meanK,float threshold)
+{
+    //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
 
-void pcl_helpers::statistical_removal(Cloud_simplePtr& input)
+    // Fill in the cloud data
+    //pcl::PCDReader reader;
+    // Replace the path below with the path where you saved your file
+    //reader.read<pcl::PointXYZ> ("table_scene_lms400.pcd", *cloud);
+
+    //std::cerr << "Cloud before filtering: " << std::endl;
+    //std::cerr << *cloud << std::endl;
+
+    // Create the filtering object
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud (input);
+    sor.setMeanK (meanK);
+    sor.setStddevMulThresh (threshold);
+    sor.filter (*input);
+
+    //std::cerr << "Cloud after filtering: " << std::endl;
+    //std::cerr << *cloud_filtered << std::endl;
+
+    //pcl::PCDWriter writer;
+    //writer.write<pcl::PointXYZ> ("table_scene_lms400_inliers.pcd", *cloud_filtered, false);
+
+    //sor.setNegative (true);
+    //sor.filter (*cloud_filtered);
+    //writer.write<pcl::PointXYZ> ("table_scene_lms400_outliers.pcd", *cloud_filtered, false);
+}
+
+
+void pcl_helpers::statistical_removal(Cloud_simplePtr& input,int meanK, float threshold)
 {
     //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
@@ -503,8 +535,8 @@ void pcl_helpers::statistical_removal(Cloud_simplePtr& input)
     // Create the filtering object
     pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
     sor.setInputCloud (input);
-    sor.setMeanK (50);
-    sor.setStddevMulThresh (1.0);
+    sor.setMeanK (meanK);
+    sor.setStddevMulThresh (threshold);
     sor.filter (*input);
 
     //std::cerr << "Cloud after filtering: " << std::endl;
@@ -521,18 +553,7 @@ void pcl_helpers::statistical_removal(Cloud_simplePtr& input)
 
 void pcl_helpers::downsample(Cloud_simplePtr& input)
 {
-   pcl::PCLPointCloud2::Ptr cloud (new pcl::PCLPointCloud2 ());
-  //pcl::PCLPointCloud2::Ptr cloud_filtered (new pcl::PCLPointCloud2 ());
-
-  // Fill in the cloud data
-  //pcl::PCDReader reader;
-  // Replace the path below with the path where you saved your file
-  //reader.read ("table_scene_lms400.pcd", *cloud); // Remember to download the file first!
-
-  //std::cerr << "PointCloud before filtering: " << cloud->width * cloud->height 
-  //    << " data points (" << pcl::getFieldsList (*cloud) << ")." << std::endl;
-
-  // Create the filtering object
+  pcl::PCLPointCloud2::Ptr cloud (new pcl::PCLPointCloud2 ());
   pcl::toPCLPointCloud2(*input,*cloud);
   pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
   sor.setInputCloud (cloud);
@@ -540,190 +561,204 @@ void pcl_helpers::downsample(Cloud_simplePtr& input)
   sor.filter(*cloud);
   pcl::fromPCLPointCloud2(*cloud,*input); 
 
-  //std::cerr << "PointCloud after filtering: " << cloud_filtered->width * cloud_filtered->height 
-   //    << " data points (" << pcl::getFieldsList (*cloud_filtered) << ")." << std::endl;
-
-  //pcl::PCDWriter writer;
-  //writer.write ("table_scene_lms400_downsampled.pcd", *cloud_filtered, 
-    //     Eigen::Vector4f::Zero (), Eigen::Quaternionf::Identity (), false);
 }
 
-//void pcl_helpers::poisson_reconstruction2(Cloud_simplePtr& input, pcl::PolygonMesh& mesh)
-//{
-//     pcl::PassThrough<pcl::PointXYZ> filter;
-//      filter.setInputCloud(input);
-//      filter.filter(*input);
-//     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
-//
-//      Eigen::Vector4f centroid;
-//      pcl::compute3DCentroid(*input, centroid);
-//
-//
-//      ne.setViewPoint(centroid[0], centroid[1], centroid[2]);
-//      //pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
-//      //ne.setNumberOfThreads(std::thread::hardware_concurrency()-1);
-//      pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
-//      kdtree.setInputCloud(input);
-//      int K = 3;
-//      
-//
-//      std::vector<int> pointID(K);
-//      std::vector<float> pointDistance(K);
-//      std::vector<int> visited;
-//      //ne.setSearchMethod(tree);
-//     // ne.setKSearch(4);
-//     // ne.setInputCloud(input);
-//      //ne.setRadiusSearch(0.03);
-//     // ne.setKSearch(10);
-//
-//
-//      pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>());
-//
-//      for(int i = 0; i < *input.points.size(); i++) 
-//      {
-//        if(std::find(std::begin(visited),std::end(visited),i) != std::end(visited))
-//            continue;
-//        
-//        if ( kdtree.nearestKSearch (searchPoint, K, pointID, pointDistance) > 0 )
-//        {
-//            for(auto indx: pointID)
-//            {
-//                visited.push_back(indx);
-//            }
-//
-//            Eigen::Vector3f point1 = Eigen::Vector3f (*input)[pointID[0]].x,(*input)[pointID[0].y,(*input)[pointID[0]].z);
-//                
-//            Eigen::Vector3f point2 = Eigen::Vector3f (*input)[pointID[1]].x,(*input)[pointID[1].y,(*input)[pointID[1]].z);
-//             
-//            
-//            Eigen::Vector3f point3 = Eigen::Vector3f (*input)[pointID[2]].x,(*input)[pointID[2].y,(*input)[pointID[2]].z);
-//
-//            Eigen::Vector3f vec1 = point1 - point2;
-//            Eigen::Vector3f vec2 = point1 - point3;
-//
-//            Eigen::Vector3f cross = Eigen::Vector3f(vec1(1)*vec2(2) - vec2(1)*vec1(2) //X
-//                                               ,vec1(2)*vec2(0) - vec2(2)*vec1(0) //Y
-//                                               ,vec1(0)*vec2(1) - vec2(0)*vec1(1)); //Z            
-//            cross.normalize();
-//            
-//            Eigen::Vector3f pos = Eigen::Vector3f(cross(0),cross(1),cross(2));
-//            pcl::Normal normal(pos(0),pos(1), pos(2),1.0f);
-//
-//            (*cloud_normals).points.push_back(normal);
-//
-//        }
-//
-//      }
-//      ne.compute(*cloud_normals);
-//      pcl::PointCloud<pcl::PointNormal>::Ptr cloud_smoothed_normals(new pcl::PointCloud<pcl::PointNormal>());
-//      pcl::concatenateFields(*input, *cloud_normals, *cloud_smoothed_normals);
-//
-//      for(pcl::PointNormal& point: *cloud_smoothed_normals)
-//      {
-//          pcl::flipNormalTowardsViewpoint(point,centroid[0],centroid[1],centroid[2],point.normal_x,point.normal_y,point.normal_z);
-//      }
-//
-//      //cout << "begin poisson reconstruction" << endl;
-//      pcl::Poisson<pcl::PointNormal> poisson;
-//      poisson.setDepth(9);
-//      poisson.setInputCloud(cloud_smoothed_normals);
-//      //pcl::PolygonMesh mesh;
-//      poisson.reconstruct(mesh);
-//}
 
 
-
-
-void pcl_helpers::poisson_reconstruction3(Cloud_simplePtr& input, pcl::PolygonMesh& mesh)
+void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surface_mode,int normal_method,pcl::PolygonMesh& mesh)
 {
-     pcl::PassThrough<pcl::PointXYZ> filter;
-      filter.setInputCloud(input);
-      filter.filter(*input);
-     pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> ne;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-      Eigen::Vector4d centroid;
-      Eigen::Affine3d transform = Eigen::Affine3d::Identity();
-      pcl::compute3DCentroid(*input,centroid);
-      transform.translation() << -centroid(0), -centroid(1), -centroid(2);
-      pcl::transformPointCloud(*input,*input,transform);
+    for(int i = 0 ; i< cloud.size(); i++)
+    {
+        pcl::PointXYZRGB p;
+        p.x = cloud[i].x;
+        p.y = cloud[i].y;
+        p.z = cloud[i].z;
+        p.r = 255*cloud[i].r;
+        p.g = 255*cloud[i].g;
+        p.b = 255*cloud[i].b;
+        
+        cloud_ptr->points.push_back(p);
+    }
+ /* ****Translated point cloud to origin**** */
+     Eigen::Vector4f centroid;
+     pcl::compute3DCentroid(*cloud_ptr, centroid);
 
-//      pcl::compute3DCentroid(*input, centroid);
-     // ne.setViewPoint(0,0,1.0);
-      ne.setViewPoint(centroid[0], centroid[1], centroid[2]);
-      pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
-      ne.setNumberOfThreads(std::thread::hardware_concurrency());
-      ne.setSearchMethod(tree);
-      ne.setKSearch(5);
-      ne.setInputCloud(input);
-      //ne.setRadiusSearch(0.01);
-     // ne.setKSearch(10);
+     Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+     transform.translation() << -centroid[0], -centroid[1], -centroid[2];
+
+     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudTranslated(new pcl::PointCloud<pcl::PointXYZRGB>());
+     pcl::transformPointCloud(*cloud_ptr, *cloudTranslated, transform);
+
+     /* ****kdtree search and msl object**** */
+     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kdtree_for_points (new pcl::search::KdTree<pcl::PointXYZRGB>);
+     kdtree_for_points->setInputCloud(cloudTranslated);
+     pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointXYZRGBNormal> ());
+
+     bool mls_mode = false;
+     bool normal_mode = false;
+
+     if(normal_method == 1){
+        normal_mode = true;
+     }else if(normal_method == 2){
+        mls_mode = true;
+     }else{
+        std::cout << "Select:\n '1' for normal estimation \n '2' for mls normal estimation " << std::endl;
+        std::exit(-1);
+     }
+
+     bool gp3_mode = false;
+     bool poisson_mode = false;
+
+     if(surface_mode == 1){
+        poisson_mode = true;
+     }else if(surface_mode == 2){
+        gp3_mode = true;
+     }else{
+        std::cout << "Select: \n'1' for surface poisson method \n '2' for surface gp3 method " << std::endl;
+        std::exit(-1);
+     }
+
+     if(mls_mode){
+
+       std::cout << "Using mls method estimation...";
+
+       pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr mls_points (new pcl::PointCloud<pcl::PointXYZRGBNormal>());
+       pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> mls;
+       //Set parameters
+       mls.setComputeNormals(true);
+       mls.setInputCloud(cloudTranslated);
+      // mls.setDilationIterations(10);
+       //mls.setDilationVoxelSize(0.5);
+       //mls.setSqrGaussParam(2.0);
+       //mls.setUpsamplingRadius(5);
+       //mls.setPolynomialOrder (2);
+       //mls.setPointDensity(30);
+       mls.setSearchMethod(kdtree_for_points);
+       mls.setSearchRadius(0.03);
+       mls.process(*mls_points);
+
+       pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGB>());
+
+       for(int i = 0; i < mls_points->points.size(); i++) {
+
+              pcl::PointXYZRGB pt;
+              pt = cloud_ptr->points[i];
+
+              temp->points.push_back(pt);
+        }
 
 
-      pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>());
-      ne.compute(*cloud_normals);
-      //cout << "normal estimation complete" << endl;
-     // cout << "reverse normals' direction" << endl;
-      pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal, pcl::PrincipalCurvatures> principalCurvaturesEstimation;
+       pcl::concatenateFields (*temp, *mls_points, *cloud_with_normals);
+       std::cout << "[OK]" << std::endl;
 
-    //  principalCurvaturesEstimation.setInputCloud(input);typedef 
-    //  principalCurvaturesEstimation.setInputNormals(cloud_normals);
-    //  principalCurvaturesEstimation.setSearchMethod(tree);
-    //  principalCurvaturesEstimation.setKSearch(10);
-    //  pcl::PointCloud<pcl::PrincipalCurvatures>::
-    //            Ptr principalCurvatures (new pcl::PointCloud<pcl::PrincipalCurvatures> ());
+     }else if(normal_mode){
 
-    //  principalCurvaturesEstimation.compute (*principalCurvatures);
+       std::cout << "Using normal method estimation...";
 
+       pcl::NormalEstimationOMP<pcl::PointXYZRGB, pcl::Normal> n;
+       pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
 
-      //Eigen::Matrix3f matrix;
-      //Eigen::Vector4f xyz_centroid;
+       n.setInputCloud(cloudTranslated);
+       n.setSearchMethod(kdtree_for_points);
+       n.setKSearch(20); //It was 20
+       n.compute(*normals);//Normals are estimated using standard method.
 
-      //pcl::compute3DCentroid(*input,xyz_centroid);
-      //pcomputeCovarianceMatrix(*input,xyz_centroid,matrix);
+       //pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointNormal> ());
+       pcl::concatenateFields(*cloud_ptr, *normals, *cloud_with_normals);
 
+       std::cout << "[OK]" << std::endl;
 
-      //for(size_t i = 0; i < cloud_normals->size(); ++i){
-    //  	cloud_normals->points[i].normal_x *= -1;
-    //  	cloud_normals->points[i].normal_y *= -1;
-    //  	cloud_normals->points[i].normal_z *= -1;
-      //    pcl::flipNormalTowardsViewpoint(cloud_normals->points[i].normal_x,cloud_normals->points[i].normal_y,cloud_normals->point[i].normal_z);
-            
+     }else{
+        std::cout << "Select: '1' for normal method estimation \n '2' for mls normal estimation " << std::endl;
+        std::exit(-1);
+     }
 
-      //}
+     // Create search tree*
+     pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr kdtree_for_normals (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+     kdtree_for_normals->setInputCloud(cloud_with_normals);
 
-      //cout << "combine points and normals" << endl;
-      pcl::PointCloud<pcl::PointNormal>::Ptr cloud_smoothed_normals(new pcl::PointCloud<pcl::PointNormal>());
-      pcl::concatenateFields(*input, *cloud_normals, *cloud_smoothed_normals);
-      
-      //Eigen::Vector3f viewPoint (0,0,1.0);
-      //Eigen::Vector3f zero_v(0,0,0);
-      for(pcl::PointNormal& point: *cloud_smoothed_normals)
-      {
-        pcl::flipNormalTowardsViewpoint(point,0,0,1.0,point.normal_x,point.normal_y,point.normal_z);
-         
-      }
-      //cout << "begin poisson reconstruction" << endl;
-      pcl::Poisson<pcl::PointNormal> poisson;
-      poisson.setDepth(8);
-      poisson.setInputCloud(cloud_smoothed_normals);
-      //pcl::PolygonMesh mesh;
-      poisson.reconstruct(mesh);
+     std::cout << "Applying surface meshing...";
+
+     if(gp3_mode){
+
+       std::cout << "Using surface method: gp3 ..." << std::endl;
+
+       int searchK = 100; //was 100
+       int search_radius = 10; //was 10
+       int setMU = 5; //was 5
+       int maxiNearestNeighbors = 100; //was 100
+       bool normalConsistency = false;
+
+       pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
+
+       gp3.setSearchRadius(search_radius);//It was 0.025
+       gp3.setMu(setMU); //It was 2.5
+       gp3.setMaximumNearestNeighbors(maxiNearestNeighbors);    //It was 100
+       //gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees    //it was 4
+       //gp3.setMinimumAngle(M_PI/18); // 10 degrees //It was 18
+       //gp3.setMaximumAngle(M_PI/1.5); // 120 degrees        //it was 1.5
+       gp3.setNormalConsistency(normalConsistency); //It was false
+       gp3.setInputCloud(cloud_with_normals);
+       gp3.setSearchMethod(kdtree_for_normals);
+       gp3.reconstruct(mesh);
+
+       //vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+       //pcl::PolygonMesh mesh_pcl;
+       //pcl::VTKUtils::convertToVTK(triangles,polydata);
+       //pcl::VTKUtils::convertToPCL(polydata,mesh_pcl);
+
+       //pcl::io::savePolygonFilePLY("mesh.ply", mesh_pcl);
+
+       std::cout << "[OK]" << std::endl;
+
+     }else if(poisson_mode){
+
+        std::cout << "Using surface method: poisson ..." << std::endl;
+
+        int nThreads=8;
+        int setKsearch=10;
+        int depth=7;
+        float pointWeight=2.0;
+        float samplePNode=1.5;
+        float scale=1.1;
+        int isoDivide=8;
+        bool confidence=true;
+        bool outputPolygons=true;
+        bool manifold=true;
+        int solverDivide=8;
+
+        pcl::Poisson<pcl::PointXYZRGBNormal> poisson;
+
+        poisson.setDepth(depth);//9
+        poisson.setInputCloud(cloud_with_normals);
+        poisson.setPointWeight(pointWeight);//4
+        poisson.setDegree(2);
+        poisson.setSamplesPerNode(samplePNode);//1.5
+        poisson.setScale(scale);//1.1
+        poisson.setIsoDivide(isoDivide);//8
+        poisson.setConfidence(confidence);
+        poisson.setOutputPolygons(outputPolygons);
+        poisson.setManifold(manifold);
+        poisson.setSolverDivide(solverDivide);//8
+        poisson.reconstruct(mesh);
+
+        //pcl::PolygonMesh mesh2;
+        //poisson.reconstruct(mesh2);
+        //pcl::surface::SimplificationRemoveUnusedVertices rem;
+        //rem.simplify(mesh2,triangles);
+
+        std::cout << "[OK]" << std::endl;
+
+     }else{
+        std::cout << "Select: \n'1' for surface poisson method \n '2' for surface gp3 method " << std::endl;
+        std::exit(-1);
+     }
+     pcl::io::saveOBJFile("poisson_test.obj",mesh);
+
 }
 
-//void surface_reconstructionCGAL
-//    (std::vector<std::pair<Point,Vector>> points,Polyhedron  mesh,std::string& filename_output)
-//{
-//      //Polyhedron output_mesh;
-//    double average_spacing = CGAL::compute_average_spacing<CGAL::Sequential_tag>
-//                                        (points, 6, CGAL::parameters::point_map(CGAL::First_of_pair_property_map<Pwn>()));
-//    if (CGAL::poisson_surface_reconstruction_delaunay(points.begin(), points.end(),
-//                CGAL::First_of_pair_property_map<Pwn>(),CGAL::Second_of_pair_property_map<Pwn>(),mesh, average_spacing))
-//    {
-//        std::ofstream out(filename_output);
-//        out << mesh;
-//    }
-//  
-//}
 
 Cloud_simple::Ptr pcl_helpers::pc_toPCL(const rs2::points& points)
 {
@@ -826,6 +861,104 @@ Cloud_rgb::Ptr pcl_helpers::pcRGB_toPCL(const rs2::points& points, const rs2::vi
 
 
 }
+
+//pcl::PolygonMesh pcl_helpers::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,1,mesh);
+//    return mesh;
+//}
+//pcl::PolygonMesh pcl_helpers::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZ,PointXYZNormal>(cloud,2,1,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::gp3Normal_reconstruction(std::vector<Point> cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction(cloud,2,1,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,2,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZ,PointXYZNormal>(cloud,2,2,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::gp3Mls_reconstruction(std::vector<Point> cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction(cloud,2,2,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,1,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZ,PointXYZNormal>(cloud,1,1,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::poissonNormal_reconstruction(std::vector<Point> cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction(cloud,1,1,mesh);
+//    return mesh;
+//
+//}
+//pcl::PolygonMesh pcl_helpers::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,2,mesh);
+//    return mesh;
+//
+//}
+//
+//pcl::PolygonMesh pcl_helpers::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction<PointXYZ,PointXYZNormal>(cloud,1,2,mesh);
+//    return mesh;
+//
+//}
+//
+//pcl::PolygonMesh pcl_helpers::poissonMls_reconstruction(std::vector<Point> cloud)
+//{
+//    using namespace pcl;
+//    PolygonMesh mesh;
+//    poisson_gp3_reconstruction(cloud,1,2,mesh);
+//    return mesh;
+//
+//}
 
 
 //template <typename PointT>

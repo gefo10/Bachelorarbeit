@@ -1,15 +1,20 @@
+#include "pcl_helper.h"
 #include <GL/glew.h>
 #include "openGLPointCloud.hpp"
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
+
+//#include <pcl/point_types.h>
+//#include <pcl/point_cloud.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <pcl/io/pcd_io.h>
+//#include <pcl/io/pcd_io.h>
+#include "ICP.h"
 #include "openGLPointCloudSystem/Window.h"
 #include "openGLPointCloudSystem/Renderer.h"
+//#include <pcl/PolygonMesh.h>
 
 
+using PolygonMesh = pcl::PolygonMesh;
 void register_glfw_callbacks(window& app, glfw_state& app_state);
 
 //Helper function for drawing pointcloud
@@ -54,12 +59,35 @@ class Scanner {
     //save a pointloud as PCD file
     //#####################################################
     template <typename PointT>
-    void save(typename pcl::PointCloud<PointT>& frame,std::string file_name)
+    void save_pcd(std::string file_name,typename pcl::PointCloud<PointT>& frame)
     {
         pcl::io::savePCDFileASCII(file_name.c_str(), frame);       
     }
+    
+
     //#######################################################################
     
+    //##########################################
+    //Save mesh as obj/ply file format
+    //###########################################
+    void save_obj(std::string file_name, PolygonMesh& mesh)
+    {
+          pcl::io::saveOBJFile(file_name.c_str(),mesh);
+    }
+    
+    template<typename PointT>
+    void save_ply(std::string file_name,typename pcl::PointCloud<PointT>& frame)
+    {
+         pcl::io::savePLYFile(file_name.c_str(),frame);
+    }
+    
+    void save_ply(std::string file_name,PolygonMesh& mesh)
+    {
+         pcl::io::savePLYFile(file_name.c_str(),mesh);
+    }
+    
+    
+
 
     //##################################################################################
     //load a pointcloud from a PCD file
@@ -81,21 +109,32 @@ class Scanner {
     float getWindowHeight() {return window_height;};
     
 
+
+
     //####################################################################################################################
     //Overloaded functions for the ICP algorithm
     //####################################################################################################################
 
-    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
-    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
+    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
 
     std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
-    std::vector<Point*> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
     
-    std::vector<Point*> allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
-    std::vector<Point*> allign_ICP(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud);
+    std::vector<Point> allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
     //########################################################################################################################
     
 
+    //PCL ICP DEMO TEST VERSION
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr allign_demo_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetCloud)
+    {
+       icp_demo_pcl(sourceCloud,targetCloud);
+   
+       *targetCloud= *targetCloud+*sourceCloud;
+
+        return targetCloud;
+    }
     //#############################################################################
     //Overloaded functions to view a Pointcloud in 3D
     //#############################################################################
@@ -112,6 +151,27 @@ class Scanner {
     //#############################################################################
     
    // void view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
+
+    //Reconstruction Methods
+    //Options: 
+    //1.Poisson using normal estimation -> not satisfying result
+    //2.Poisson using moving least squares algorithm -> bad result
+    //3.Greedy triangulation using normal estimation -> not satisfying
+    //4.Greedy triangulation using moving least squares algorithm -> best so far
+
+
+    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh gp3Normal_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(std::vector<Point> cloud);
 
   private:
     //####################################################################################

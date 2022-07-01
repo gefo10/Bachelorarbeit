@@ -4,24 +4,25 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/io/pcd_io.h>
+
+//#include <pcl/filters/passthrough.h>
+//#include <pcl/io/pcd_io.h>
 #include <thread>
-#include <pcl/io/ply_io.h>
-#include <pcl/console/parse.h>
-#include <pcl/common/transforms.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/common/common_headers.h>
+//#include <pcl/io/ply_io.h>
+//#include <pcl/console/parse.h>
+//#include <pcl/common/transforms.h>
+//#include <pcl/visualization/pcl_visualizer.h>
+//#include <pcl/common/common_headers.h>
 #include "pcl_helper.h"
 #include <string>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/surface/gp3.h>
+//#include <pcl/kdtree/kdtree_flann.h>
+//#include <pcl/features/normal_3d.h>
+//#include <pcl/surface/gp3.h>
 #include <chrono>
-#include <pcl/io/vtk_io.h>
-#include <pcl/io/obj_io.h>
-#include <pcl/search/kdtree.h> // for KdTree
-#include <pcl/surface/mls.h>
+//#include <pcl/io/vtk_io.h>
+//#include <pcl/io/obj_io.h>
+//#include <pcl/search/kdtree.h> // for KdTree
+//#include <pcl/surface/mls.h>
 #include <thread>
 #include "Scanner.h"
 #include <GLFW/glfw3.h>
@@ -33,12 +34,12 @@ int main2();
 
 int main(int argc, char** argv) {
     
-    std::string model2("../raptor-model/source/raptor.ply");
+    //std::string model("../raptor-model/source/raptor.ply");
     
     
-    std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
+   std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
 
-    //std::string model2("../spartan_recap2.ply");
+   // std::string model("../spartan_recap2.ply");
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
     sc.load<pcl::PointXYZRGB>("pc_captured10.pcd",cloud);
 
 
-    sc.load<pcl::PointXYZRGB>("pc_captured11.pcd",cloud2);
+    sc.load<pcl::PointXYZRGB>("pc_captured10.pcd",cloud2);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
 
@@ -75,8 +76,20 @@ int main(int argc, char** argv) {
 
 //    sc.view(cloud);
 //    sc.view(cloud2);
-    auto res = sc.allign_ICP(cloud,cloud2);
-    sc.view(res);
+  auto res = sc.allign_ICP(cloud,cloud2);
+
+  //pcl_helpers::poisson_reconstruction4<pcl::PointXYZRGB,pcl::PointXYZRGBNormal>(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
+  //pcl_helpers::poisson_reconstruction4(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
+  PolygonMesh mesh = sc.gp3Mls_reconstruction(res);
+  // pcl_helpers::poisson_reconstruction5<pcl::PointXYZ>(cloud_ptr,mesh);
+  //Mesh mesh_obj;
+  //mesh_obj.loadOBJ("poisson_test.obj");
+  //sc.load_obj("poisson_test.ply");
+
+  pcl_helpers::view(mesh);
+
+  //sc.load_obj("poisson_test.obj");
+    //sc.view(res);
     
 
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);

@@ -16,7 +16,7 @@ add_subdirectory(openGLPointCloudSystem)
 add_subdirectory(algorithms)
 
 
-add_library(pcl_helper SHARED pcl_helper.h pcl_helper.cpp)
+add_library(pcl_helper SHARED pcl_helper.cpp)
 add_library(scanner SHARED openGLPointCloud.hpp Scanner.cpp)
 
 #add_subdirectory(external/glm)

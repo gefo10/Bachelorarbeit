@@ -10,6 +10,8 @@
 struct Vertex {
     // position
     glm::vec3 Position;
+
+    glm::vec3 Color= glm::vec3(1.0f,1.0f,1.0f);
     // normal
     //glm::vec3 Normal;
     // texCoords
