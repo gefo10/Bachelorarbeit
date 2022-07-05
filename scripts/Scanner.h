@@ -12,7 +12,7 @@
 #include "openGLPointCloudSystem/Window.h"
 #include "openGLPointCloudSystem/Renderer.h"
 //#include <pcl/PolygonMesh.h>
-
+#include "JsonParser.h"
 
 using PolygonMesh = pcl::PolygonMesh;
 void register_glfw_callbacks(window& app, glfw_state& app_state);
@@ -32,30 +32,140 @@ using PC_RGB =  pcl::PointCloud<pcl::PointXYZRGB>;
 
 class Scanner {
   public:
-    Scanner(): 
-        window_width(1280), window_height(720),window_name("Pointcloud window") {};
+    Scanner()
+        :Scanner("../config/defaultConfig.json") 
+    {};
 
-    Scanner(float width,float height,const std::string& name): 
-        window_width(width), window_height(height), window_name(name){};
+    //Scanner(float width,float height,const std::string& name)
+    //    : window_width(width), 
+    //      window_height(height), 
+    //      window_name(name)
+    //{};
+
+    Scanner(std::string json_file)
+       : config(json_file),
+         window_width(config.GetWindowWidth()),
+         window_height(config.GetWindowHeight()),
+         window_name(config.GetWindowName()) 
+    {};
 
     void pointcloud_activateCamera();
 
     //################################################
     //use Realsense Camera to capture exactly 1 frame 
     //#################################################
-    PC_SIMPLE::Ptr captureOnce_PcData(bool);
-    PC_RGB::Ptr captureOnce_PcRGBData(bool);
+    PC_SIMPLE::Ptr capture_FrameXYZ(bool);
+    PC_RGB::Ptr capture_FrameXYZRGB(bool);
     //######################################################
     
 
     //####################################################################################
     //Use Realsense Camera to capture multiple frames (capture until the window is closed)
     //########################################################################################
-    std::vector<PC_SIMPLE> capture_PcData(bool);
-    std::vector<PC_RGB::Ptr> capture_PcRGBData(bool);
+    std::vector<PC_SIMPLE> capture_FramesXYZ(bool,int count);
+    std::vector<PC_RGB::Ptr> capture_FramesXYZRGB(bool,int count);
     //########################################################################################
     
-    //########################################################
+     void load_obj(std::string path);
+   
+
+    float getWindowWidth() {return window_width;};
+    float getWindowHeight() {return window_height;};
+    
+
+
+
+    //####################################################################################################################
+    //Overloaded functions for the ICP algorithm
+    //####################################################################################################################
+
+    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
+    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+
+    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
+    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    
+    std::vector<Point> align_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
+    std::vector<Point>& align_ICP(std::vector<std::vector<Point>>& frames);
+
+    //template<typename PointT>
+    //std::vector<Point>& align_ICP(typename pcl::PointCloud<PointT>::Ptr)
+  //  template<PointT>
+  //  void align_ICP(typename pcl::PointCloud<PointT>::Ptr sourceCloud, typename pcl::PointCloud<PointT>::Ptr targetCloud)
+  //  {
+
+  //  } 
+  //  //########################################################################################################################
+    
+
+    //PCL ICP DEMO TEST VERSION
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr align_demo_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetCloud)
+    {
+       icp_demo_pcl(sourceCloud,targetCloud);
+   
+       *targetCloud= *targetCloud+*sourceCloud;
+
+        return targetCloud;
+    }
+    //#############################################################################
+    //Overloaded functions to view a Pointcloud in 3D
+    //#############################################################################
+    void view(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
+    void view(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
+    void view(pcl::PointCloud<pcl::PointXYZ>& cloud);
+    void view(pcl::PointCloud<pcl::PointXYZRGB>& cloud);
+    void view(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& frames);
+    void view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& frames);
+    void view(std::vector<pcl::PointCloud<pcl::PointXYZ>>& frames);
+    void view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& frames);
+    void view(std::vector<Point>& frames);
+    void view(std::vector<Point*>& frames);
+    void view(PolygonMesh& mesh);
+    //#############################################################################
+    
+   // void view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
+
+    //Reconstruction Methods
+    //Options: 
+    //1.Poisson using normal estimation -> not satisfying result
+    //2.Poisson using moving least squares algorithm -> bad result
+    //3.Greedy triangulation using normal estimation -> not satisfying
+    //4.Greedy triangulation using moving least squares algorithm -> best so far
+
+
+    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh gp3Normal_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh gp3Mls_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh poissonNormal_reconstruction(std::vector<Point> cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    pcl::PolygonMesh poissonMls_reconstruction(std::vector<Point> cloud);
+
+
+
+    //######################################################
+    //Randsac using SVD 
+    //######################################################
+    template<typename PointT>
+    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, unsigned int numPoints, float distanceThreshold)
+    {
+        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,numPoints,distanceThreshold);
+    }
+
+    template<typename PointT>
+    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane)
+    {
+        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,config.GetNumberOfPointsRansac(),config.GetDistanceThresholdRansac());
+    }
+
+
+   //########################################################
     //save a pointloud as PCD file
     //#####################################################
     template <typename PointT>
@@ -102,77 +212,47 @@ class Scanner {
     }
     //########################################################################################
     
-    void load_obj(std::string path);
-   
-
-    float getWindowWidth() {return window_width;};
-    float getWindowHeight() {return window_height;};
-    
-
-
-
-    //####################################################################################################################
-    //Overloaded functions for the ICP algorithm
-    //####################################################################################################################
-
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
-
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
-    std::vector<Point> allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
-    
-    std::vector<Point> allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
-    //########################################################################################################################
-    
-
-    //PCL ICP DEMO TEST VERSION
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr allign_demo_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetCloud)
+    //Load PLY file 
+    template<typename PointT>
+    typename pcl::PointCloud<PointT> load_PLY(std::string& filename, typename pcl::PointCloud<PointT>::Ptr cloud)
     {
-       icp_demo_pcl(sourceCloud,targetCloud);
-   
-       *targetCloud= *targetCloud+*sourceCloud;
-
-        return targetCloud;
+        return pcl_helpers::load_PLY(filename,cloud);
     }
-    //#############################################################################
-    //Overloaded functions to view a Pointcloud in 3D
-    //#############################################################################
-    void view(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
-    void view(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud);
-    void view(pcl::PointCloud<pcl::PointXYZ>& cloud);
-    void view(pcl::PointCloud<pcl::PointXYZRGB>& cloud);
-    void view(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& frames);
-    void view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& frames);
-    void view(std::vector<pcl::PointCloud<pcl::PointXYZ>>& frames);
-    void view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& frames);
-    void view(std::vector<Point>& frames);
-    void view(std::vector<Point*>& frames);
-    //#############################################################################
     
-   // void view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
 
-    //Reconstruction Methods
-    //Options: 
-    //1.Poisson using normal estimation -> not satisfying result
-    //2.Poisson using moving least squares algorithm -> bad result
-    //3.Greedy triangulation using normal estimation -> not satisfying
-    //4.Greedy triangulation using moving least squares algorithm -> best so far
+    //Estimate normals of pointcloud
+    template<typename PointT>
+    pcl::PointCloud<pcl::Normal>::Ptr estimateNormals(typename pcl::PointCloud<PointT>::Ptr cloud)
+    {
+        return pcl_helpers::estimateNormals(cloud);
+    }
+    
 
+    //###############################################################################
+    //Filter points only in range (min, max) along X/Y/Z
+    //###############################################################################
+    template<typename PointT>
+    void filterZ(typename pcl::PointCloud<PointT>::Ptr cloud,float min, float max)
+    {
+        pcl_helpers::filterZ(cloud,min,max);
+    }
 
-    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    pcl::PolygonMesh gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-    pcl::PolygonMesh gp3Normal_reconstruction(std::vector<Point> cloud);
-    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    pcl::PolygonMesh gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-    pcl::PolygonMesh gp3Mls_reconstruction(std::vector<Point> cloud);
-    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    pcl::PolygonMesh poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-    pcl::PolygonMesh poissonNormal_reconstruction(std::vector<Point> cloud);
-    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-    pcl::PolygonMesh poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-    pcl::PolygonMesh poissonMls_reconstruction(std::vector<Point> cloud);
+    template<typename PointT>
+    void filterY(typename pcl::PointCloud<PointT>::Ptr cloud,float min, float max)
+    {
+        pcl_helpers::filterY(cloud,min,max);
+    }
 
+    template<typename PointT>
+    void filterX(typename pcl::PointCloud<PointT>::Ptr cloud,float min, float max)
+    {
+        pcl_helpers::filterX(cloud,min,max);
+    }
+    //#################################################################################
+    
+   
+
+   void runPipeline(); 
   private:
     //####################################################################################
     //helpers to convert pointclouds from pcl to std::vector<Point> (locally defined)
@@ -213,4 +293,5 @@ class Scanner {
     float window_width;
     float window_height;
     std::string window_name;
+    JsonParser config;
 };

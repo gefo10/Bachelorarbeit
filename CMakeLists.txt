@@ -43,9 +43,9 @@ set(EXTERNAL_DEPENDENCIES realsense2::realsense2 ${EXTERNAL_DEPENDENCIES})
 find_package(OpenCV REQUIRED)
 set(EXTERNAL_DEPENDENCIES ${OpenCV_LIBS} ${EXTERNAL_DEPENDENCIES})
 
-find_package(AndreiUtils REQUIRED)
+#find_package(AndreiUtils REQUIRED)
 #include_directories(${CGAL_INCLUDE_DIRS})
-set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
+#set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
 
 #find_package(CGAL)
 
@@ -97,11 +97,12 @@ target_link_directories(main
 )
 
 
-set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES}  pcl_helper scanner)
+set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES}  scanner)
 #set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES} glfw ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} pcl_helper scanner Threads::Threads)
 
 target_link_libraries(main ${EXTERNAL_DEPENDENCIES})
 
-add_executable(TestJson testJson.cpp)
-target_link_libraries(TestJson ${AndreiUtils_LIBRARY})
+#add_executable(TestJson testJson.cpp)
+#target_link_libraries(TestJson ${AndreiUtils_LIBRARY})
+
 

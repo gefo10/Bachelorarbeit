@@ -10,7 +10,7 @@
 #include "pcl_helper.h"
 //#include "ICP.h"
 
-PC_SIMPLE::Ptr Scanner::captureOnce_PcData(bool show) try
+PC_SIMPLE::Ptr Scanner::capture_FrameXYZ(bool show) try
 {
     window app(window_width,window_height, window_name.c_str());            
     glfw_state app_state;
@@ -58,7 +58,7 @@ PC_SIMPLE::Ptr Scanner::captureOnce_PcData(bool show) try
 
 
 
-std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
+std::vector<PC_RGB::Ptr> Scanner::capture_FramesXYZRGB(bool show,int count) try
 {
     window app(window_width,window_height, window_name.c_str());
     glfw_state app_state;
@@ -114,7 +114,7 @@ std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
     
     std::vector<PC_RGB::Ptr> pointcloud_frames;
 
-    while(app && show){
+    while(app && count){
 
         auto frames = pipe.wait_for_frames(); //Wait for the next set of frames from the camera
         auto depth = frames.get_depth_frame();
@@ -126,9 +126,11 @@ std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
         //Convert generated Point Cloud to PCL Formatting
         PC_RGB::Ptr pcl_points = pcl_helpers::pcRGB_toPCL(points,color);
 
-        draw_pointcloud_pcl(app.width(),app.height(),app_state,pcl_points);
+        if(show)
+            draw_pointcloud_pcl(app.width(),app.height(),app_state,pcl_points);
 
         pointcloud_frames.push_back(pcl_points);
+        count--;
     }
     
     return pointcloud_frames;
@@ -147,7 +149,7 @@ std::vector<PC_RGB::Ptr> Scanner::capture_PcRGBData(bool show) try
 
 
 
-std::vector<PC_SIMPLE> Scanner::capture_PcData(bool show) try
+std::vector<PC_SIMPLE> Scanner::capture_FramesXYZ(bool show,int count) try
 {
     window app(window_width,window_height, window_name.c_str());            
     glfw_state app_state;
@@ -169,7 +171,7 @@ std::vector<PC_SIMPLE> Scanner::capture_PcData(bool show) try
     }
     
     std::vector<PC_SIMPLE> pointcloud_frames;
-    while(app && show) {
+    while(app && count) {
 
         auto frames = pipe.wait_for_frames(); //Wait for the next set of frames from the camera
         auto depth = frames.get_depth_frame();
@@ -180,8 +182,10 @@ std::vector<PC_SIMPLE> Scanner::capture_PcData(bool show) try
 
         PC_SIMPLE::Ptr pcl_points = pcl_helpers::pc_toPCL(points);
     
-        draw_pointcloud(app.width(),app.height(),app_state,points);
+        if(show)
+            draw_pointcloud(app.width(),app.height(),app_state,points);
         pointcloud_frames.push_back(*pcl_points);
+        count--;
 
     }
 
@@ -198,7 +202,7 @@ std::vector<PC_SIMPLE> Scanner::capture_PcData(bool show) try
 }
 
 
-PC_RGB::Ptr Scanner::captureOnce_PcRGBData(bool show) try
+PC_RGB::Ptr Scanner::capture_FrameXYZRGB(bool show) try
 {
     window app(window_width,window_height, window_name.c_str());
     glfw_state app_state;
@@ -328,199 +332,6 @@ catch (const std::exception & e)
 }
 
 
-//void Scanner::record_pointcloudFrames(const std::string& outputfile) try
-//{
-//    window app(window_width,window_height,window_name.c_str());
-//
-//    //control GUI (recorded - allow play button, recording - show 'recording to file' text)
-//    bool recorded = false;
-//    bool recording = false;    
-//    
-//    //declare a texture for the depth image on the GPU
-//    texture depth_image;
-//
-//    //declage frameset and frames that will hold the data from the camera 
-//    rs2::frameset frames;
-//    rs2::frame depth;
-//
-//    //declare depth colorizer for prettier visualisation of depth data
-//    rs2::colorizer color_map;
-//
-//    //Create a shared pointer to a pipeline
-//    auto pipe = std::make_shared<rs2::pipeline>();
-//
-//    //start streaming with default config 
-//    pipe->start();
-//
-//    //Initalize a shared ptr to a device with the current device on the pipeline
-//    rs2::device device = pipe->get_active_profile().get_device();
-//
-//    int seek_pos; //for controlling the seek bar
-//
-//    while(app) {
-//        // Flags for displaying ImGui window
-//        static const int flags = ImGuiWindowFlags_NoCollapse
-//            | ImGuiWindowFlags_NoScrollbar
-//            | ImGuiWindowFlags_NoSavedSettings
-//            | ImGuiWindowFlags_NoTitleBar
-//            | ImGuiWindowFlags_NoResize
-//            | ImGuiWindowFlags_NoMove;
-//
-//        ImGui_ImplGlfw_NewFrame();
-//        ImGui::SetNextWindowSize({ app.width(), app.height() });
-//        ImGui::Begin("app", nullptr, flags);
-//
-//        // If the device is sreaming live and not from a file
-//        if (!device.as<rs2::playback>())
-//        {
-//            frames = pipe->wait_for_frames(); // wait for next set of frames from the camera
-//            depth = color_map.process(frames.get_depth_frame()); // Find and colorize the depth data
-//        }
-//
-//        // Set options for the ImGui buttons
-//        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, { 1, 1, 1, 1 });
-//        ImGui::PushStyleColor(ImGuiCol_Button, { 36 / 255.f, 44 / 255.f, 51 / 255.f, 1 });
-//        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 40 / 255.f, 170 / 255.f, 90 / 255.f, 1 });
-//        ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 36 / 255.f, 44 / 255.f, 51 / 255.f, 1 });
-//        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12);
-//
-//        if (!device.as<rs2::playback>()) // Disable recording while device is playing
-//        {
-//            ImGui::SetCursorPos({ app.width() / 2 - 100, 3 * app.height() / 5 + 90});
-//            ImGui::Text("Click 'record' to start recording");
-//            ImGui::SetCursorPos({ app.width() / 2 - 100, 3 * app.height() / 5 + 110 });
-//            if (ImGui::Button("record", { 50, 50 }))
-//            {
-//                // If it is the start of a new recording (device is not a recorder yet)
-//                if (!device.as<rs2::recorder>())
-//                {
-//                    pipe->stop(); // Stop the pipeline with the default configuration
-//                    pipe = std::make_shared<rs2::pipeline>();
-//                    rs2::config cfg; // Declare a new configuration
-//                    char* file = new char[strlen(outputfile.c_str()) + 4];
-//                    strcpy(file,outputfile.c_str());
-//                    strcat(file,".bat");
-//
-//                    cfg.enable_record_to_file(file);
-//                    pipe->start(cfg); //File will be opened at this point
-//                    device = pipe->get_active_profile().get_device();
-//                }
-//                else
-//                { // If the recording is resumed after a pause, there's no need to reset the shared pointer
-//                    device.as<rs2::recorder>().resume(); // rs2::recorder allows access to 'resume' function
-//                }
-//                recording = true;
-//            }
-//
-//            /*
-//            When pausing, device still holds the file.
-//            */
-//            if (device.as<rs2::recorder>())
-//            {
-//                if (recording)
-//                {
-//                    ImGui::SetCursorPos({ app.width() / 2 - 100, 3 * app.height() / 5 + 60 });
-//                    char* text = new char[strlen( "Recording to file '") + strlen( outputfile.c_str())+  5];
-//                    strcpy(text,"Recording to file '");
-//                    strcat(text,outputfile.c_str());
-//                    strcat(text,".bat'");
-//                    ImGui::TextColored({ 255 / 255.f, 64 / 255.f, 54 / 255.f, 1 }, text);
-//                }
-//
-//                // Pause the playback if button is clicked
-//                ImGui::SetCursorPos({ app.width() / 2, 3 * app.height() / 5 + 110 });
-//                if (ImGui::Button("pause\nrecord", { 50, 50 }))
-//                {
-//                    device.as<rs2::recorder>().pause();
-//                    recording = false;
-//                }
-//
-//                ImGui::SetCursorPos({ app.width() / 2 + 100, 3 * app.height() / 5 + 110 });
-//                if (ImGui::Button(" stop\nrecord", { 50, 50 }))
-//                {
-//                    pipe->stop(); // Stop the pipeline that holds the file and the recorder
-//                    pipe = std::make_shared<rs2::pipeline>(); //Reset the shared pointer with a new pipeline
-//                    pipe->start(); // Resume streaming with default configuration
-//                    device = pipe->get_active_profile().get_device();
-//                    recorded = true; // Now we can run the file
-//                    recording = false;
-//                }
-//            }
-//        }
-//
-//        // After a recording is done, we can play it
-//        if (recorded) {
-//            ImGui::SetCursorPos({ app.width() / 2 - 100, 4 * app.height() / 5 + 30 });
-//            ImGui::Text("Click 'play' to start playing");
-//            ImGui::SetCursorPos({ app.width() / 2 - 100, 4 * app.height() / 5 + 50});
-//            if (ImGui::Button("play", { 50, 50 }))
-//            {
-//                if (!device.as<rs2::playback>())
-//                {
-//                    pipe->stop(); // Stop streaming with default configuration
-//                    pipe = std::make_shared<rs2::pipeline>();
-//                    rs2::config cfg;
-//                    cfg.enable_device_from_file("a.bag");
-//                    pipe->start(cfg); //File will be opened in read mode at this point
-//                    device = pipe->get_active_profile().get_device();
-//                }
-//                else
-//                {
-//                    device.as<rs2::playback>().resume();
-//                }
-//            }
-//        }
-//
-//        // If device is playing a recording, we allow pause and stop
-//        if (device.as<rs2::playback>())
-//        {
-//            rs2::playback playback = device.as<rs2::playback>();
-//            if (pipe->poll_for_frames(&frames)) // Check if new frames are ready
-//            {
-//                depth = color_map.process(frames.get_depth_frame()); // Find and colorize the depth data for rendering
-//            }
-//
-//            // Render a seek bar for the player
-//            float2 location = { app.width() / 4, 4 * app.height() / 5 + 110 };
-//            draw_seek_bar(playback , &seek_pos, location, app.width() / 2);
-//
-//            ImGui::SetCursorPos({ app.width() / 2, 4 * app.height() / 5 + 50 });
-//            if (ImGui::Button(" pause\nplaying", { 50, 50 }))
-//            {
-//                playback.pause();
-//            }
-//
-//            ImGui::SetCursorPos({ app.width() / 2 + 100, 4 * app.height() / 5 + 50 });
-//            if (ImGui::Button("  stop\nplaying", { 50, 50 }))
-//            {
-//                pipe->stop();
-//                pipe = std::make_shared<rs2::pipeline>();
-//                pipe->start();
-//                device = pipe->get_active_profile().get_device();
-//            }
-//        }
-//
-//        ImGui::PopStyleColor(4);
-//        ImGui::PopStyleVar();
-//
-//        ImGui::End();
-//        ImGui::Render();
-//
-//        // Render depth frames from the default configuration, the recorder or the playback
-//        depth_image.render(depth, { app.width() * 0.25f, app.height() * 0.25f, app.width() * 0.5f, app.height() * 0.75f  });
-//    }
-//}
-//catch (const rs2::error & e)
-//{
-//    std::cout << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
-//}
-//catch (const std::exception& e)
-//{
-//    std::cerr << e.what() << std::endl;
-//}
-//
-
-
 std::string pretty_time(std::chrono::nanoseconds duration)
 {
     using namespace std::chrono;
@@ -540,40 +351,10 @@ std::string pretty_time(std::chrono::nanoseconds duration)
 }
 
 
-//void draw_seek_bar(rs2::playback& playback, int* seek_pos, float2& location, float width)
-//{
-//    int64_t playback_total_duration = playback.get_duration().count();
-//    auto progress = playback.get_position();
-//    double part = (1.0 * progress) / playback_total_duration;
-//    *seek_pos = static_cast<int>(std::max(0.0, std::min(part, 1.0)) * 100);
-//    auto playback_status = playback.current_status();
-//    ImGui::PushItemWidth(width);
-//    ImGui::SetCursorPos({ location.x, location.y });
-//    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12);
-//    if (ImGui::SliderInt("##seek bar", seek_pos, 0, 100, "", true))
-//    {
-//        //Seek was dragged
-//        if (playback_status != RS2_PLAYBACK_STATUS_STOPPED) //Ignore seek when playback is stopped
-//        {
-//            auto duration_db = std::chrono::duration_cast<std::chrono::duration<double, std::nano>>(playback.get_duration());
-//            auto single_percent = duration_db.count() / 100;
-//            auto seek_time = std::chrono::duration<double, std::nano>((*seek_pos) * single_percent);
-//            playback.seek(std::chrono::duration_cast<std::chrono::nanoseconds>(seek_time));
-//        }
-//    }
-//    std::string time_elapsed = pretty_time(std::chrono::nanoseconds(progress));
-//    ImGui::SetCursorPos({ location.x + width + 10, location.y });
-//    ImGui::Text("%s", time_elapsed.c_str());
-//    ImGui::PopStyleVar();
-//    ImGui::PopItemWidth();
-//}
-
-
 std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
 {
     std::vector<Point> points;
      for(unsigned int i = 0; i < cloud->points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud->points[i].x;
             p.y = cloud->points[i].y;
@@ -582,7 +363,6 @@ std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZRGB>
             p.g = static_cast<float>(cloud->points[i].g) / 255;
             p.b = static_cast<float>(cloud->points[i].b) / 255;
             points.push_back(p);
-        //}
    }
 
      return points;
@@ -591,7 +371,6 @@ std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZRGB>
 {
     std::vector<Point> points;
      for(unsigned int i = 0; i < cloud.points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud.points[i].x;
             p.y = cloud.points[i].y;
@@ -600,7 +379,6 @@ std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZRGB>
             p.g = static_cast<float>(cloud.points[i].g) / 255;
             p.b = static_cast<float>(cloud.points[i].b) / 255;
             points.push_back(p);
-        //}
    }
 
      return points;
@@ -609,16 +387,11 @@ std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZ>& c
 {
     std::vector<Point> points;
      for(unsigned int i = 0; i < cloud.points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud.points[i].x;
             p.y = cloud.points[i].y;
             p.z = cloud.points[i].z;
-            //p.r = static_cast<float>(cloud->points[i].r) / 255;
-            //p.g = static_cast<float>(cloud->points[i].g) / 255;
-            //p.b = static_cast<float>(cloud->points[i].b) / 255;
             points.push_back(p);
-        //}
    }
 
      return points;
@@ -627,16 +400,11 @@ std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZ>::P
 {
     std::vector<Point> points;
      for(unsigned int i = 0; i < cloud->points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud->points[i].x;
             p.y = cloud->points[i].y;
             p.z = cloud->points[i].z;
-            //p.r = static_cast<float>(cloud->points[i].r) / 255;
-            //p.g = static_cast<float>(cloud->points[i].g) / 255;
-            //p.b = static_cast<float>(cloud->points[i].b) / 255;
             points.push_back(p);
-        //}
    }
 
      return points;
@@ -652,9 +420,6 @@ std::vector<std::vector<Point>> Scanner::convert_pcl_points(std::vector<pcl::Poi
             p.x = frames[i]->points[j].x;
             p.y = frames[i]->points[j].y;
             p.z = frames[i]->points[j].z;
-            //p.r = static_cast<float>(cloud->points[i].r) / 255;
-            //p.g = static_cast<float>(cloud->points[i].g) / 255;
-            //p.b = static_cast<float>(cloud->points[i].b) / 255;
             frame.push_back(p);
          }
          frames_new.push_back(frame);
@@ -672,9 +437,6 @@ std::vector<std::vector<Point>> Scanner::convert_pcl_points(std::vector<pcl::Poi
             p.x = frames[i].points[j].x;
             p.y = frames[i].points[j].y;
             p.z = frames[i].points[j].z;
-            //p.r = static_cast<float>(cloud->points[i].r) / 255;
-            //p.g = static_cast<float>(cloud->points[i].g) / 255;
-            //p.b = static_cast<float>(cloud->points[i].b) / 255;
             frame.push_back(p);
          }
          frames_new.push_back(frame);
@@ -836,9 +598,12 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 
 }
 
+void Scanner::view(PolygonMesh& mesh)
+{
+    pcl_helpers::view(mesh);
+}
 
-
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
+std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
 {
     pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
     pcl_helpers::statistical_removal(targetCloud,100,0.8f);
@@ -846,14 +611,14 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sour
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
    
-    icp(dynamicCloud,staticCloud);
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
 
     return dynamicCloud;
 }
 
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
     //pcl_helpers::statistical_removal(sourceCloud);
     //pcl_helpers::statistical_removal(targetCloud);
@@ -861,14 +626,14 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceClo
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
 
-    icp(dynamicCloud,staticCloud);
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
 
     return dynamicCloud;
 }
 
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
+std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
 {
     pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
     pcl_helpers::statistical_removal(targetCloud,100,0.8f);
@@ -881,14 +646,14 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& s
 
     //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
 
-    icp(dynamicCloud,staticCloud);
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++) {
         dynamicCloud.push_back(staticCloud[i]);
     }
 
     return dynamicCloud;
 }
-std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
     //pcl_helpers::statistical_removal(sourceCloud);
     //pcl_helpers::statistical_removal(targetCloud);
@@ -896,17 +661,17 @@ std::vector<Point> Scanner::allign_ICP(pcl::PointCloud<pcl::PointXYZRGB>& source
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
 
-    icp(dynamicCloud,staticCloud);
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
 
     return dynamicCloud;  
 }
 
-std::vector<Point> Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
+std::vector<Point> Scanner::align_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
 {
 
-    icp(sourceCloud,targetCloud);
+    icp(sourceCloud,targetCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < targetCloud.size(); i++)
         sourceCloud.push_back(targetCloud[i]);
 
@@ -914,34 +679,15 @@ std::vector<Point> Scanner::allign_ICP(std::vector<Point>& sourceCloud,std::vect
 
 }
 
-//void Scanner::view_icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
-//{
-//
-//    Window w(window_width,window_height,window_name.c_str());
-//
-//    Renderer re(w);
-//    double lastTime;
-//    for(int i = 0; i < 500; i ++){
-//        icp(sourceCloud,targetCloud,1);
-//        auto source_copy = sourceCloud;
-//        for(int i = 0; i < targetCloud.size(); i++)
-//            source_copy.push_back(targetCloud[i]);
-//
-//        
-//        lastTime = glfwGetTime();
-//        re.Draw_short(source_copy,lastTime);
-//
-//    }
-//
-//
-//}
-//
 
+std::vector<Point>& Scanner::align_ICP(std::vector<std::vector<Point>>& frames)
+{
+    return icp(frames, this->config.GetMaxIterationsICP());
+}
 std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
 {
     std::vector<Point*> points;
      for(unsigned int i = 0; i < cloud->points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud->points[i].x;
             p.y = cloud->points[i].y;
@@ -950,7 +696,6 @@ std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXY
             p.g = static_cast<float>(cloud->points[i].g) / 255;
             p.b = static_cast<float>(cloud->points[i].b) / 255;
             points.push_back(&p);
-        //}
    }
 
      return points;
@@ -959,7 +704,6 @@ std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXY
 {
     std::vector<Point*> points;
      for(unsigned int i = 0; i < cloud.points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud.points[i].x;
             p.y = cloud.points[i].y;
@@ -968,7 +712,6 @@ std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXY
             p.g = static_cast<float>(cloud.points[i].g) / 255;
             p.b = static_cast<float>(cloud.points[i].b) / 255;
             points.push_back(&p);
-        //}
    }
 
      return points;
@@ -977,16 +720,11 @@ std::vector<Point*> Scanner::convert_pcl_points_ptr(pcl::PointCloud<pcl::PointXY
 {
     std::vector<Point*> points;
      for(unsigned int i = 0; i < cloud.points.size(); i++) {
-        //if(cloud->points[i].z && cloud->points[i].z < 15.0f){
             Point p;
             p.x = cloud.points[i].x;
             p.y = cloud.points[i].y;
             p.z = cloud.points[i].z;
-            //p.r = static_cast<float>(cloud->points[i].r) / 255;
-            //p.g = static_cast<float>(cloud->points[i].g) / 255;
-            //p.b = static_cast<float>(cloud->points[i].b) / 255;
             points.push_back(&p);
-        //}
    }
 
      return points;
@@ -1204,4 +942,34 @@ pcl::PolygonMesh Scanner::poissonMls_reconstruction(std::vector<Point> cloud)
 
 }
 
+void Scanner::runPipeline()
+{
+    //capture plane data
+    auto frames_plane = this->capture_FramesXYZRGB(true,2);
 
+    auto frames_object = this->capture_FramesXYZRGB(true,10);
+
+
+    //perform Ransac cloud segmentation
+
+    for(int i = 0; i< frames_plane.size(); i++)
+    {
+        for(int j = 0; j < frames_object.size(); j++)
+            this->ransac_SVD<pcl::PointXYZRGB>(frames_object[j],frames_plane[i]);
+
+    }
+
+
+    //convert to vector<Points>
+   auto points_converted = convert_pcl_points(frames_object);
+
+   //ICP
+   auto& aligned_cloud = this->align_ICP(points_converted);
+
+   PolygonMesh mesh = this->gp3Mls_reconstruction(aligned_cloud);
+
+   this->save_obj(config.GetSavePath(),mesh);
+
+   this->view(mesh);
+
+}

@@ -4,6 +4,8 @@
 #include <vector>
 #include "Point.h"
 #include <iostream>
+
+
  enum class ALLIGNMENT {
         ALLIGN_X,ALLIGN_Y,ALLIGN_Z
     };
@@ -44,6 +46,7 @@ struct Node {
 class KdTree 
 {
 public:
+    KdTree() = delete;
     KdTree(std::vector<Point>& cloud);
     KdTree(std::vector<Point*>& cloud);
    ~KdTree();

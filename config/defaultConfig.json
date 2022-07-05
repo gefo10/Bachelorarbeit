@@ -1,0 +1,17 @@
+{
+    "window": {
+        "width": 1280,
+        "height": 720,
+        "name" : "Pointcloud window"
+    },
+    "icp": {
+        "max_iterations" : 30
+    },
+    "ransac": {
+        "distanceThreshold" : 1e-08,
+        "numberOfPoints" : 100
+    },
+    "save_folder":{
+        "path" : "/"
+    }
+}

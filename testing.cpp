@@ -43,11 +43,11 @@ int main(int argc, char** argv) {
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-    Scanner sc(1920,780,"PointCloud");
-    sc.load<pcl::PointXYZRGB>("pc_captured10.pcd",cloud);
+    Scanner sc;
+    sc.load<pcl::PointXYZRGB>("../data/pc_captured10.pcd",cloud);
 
 
-    sc.load<pcl::PointXYZRGB>("pc_captured10.pcd",cloud2);
+    sc.load<pcl::PointXYZRGB>("../data/pc_captured11.pcd",cloud2);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
 
@@ -76,8 +76,8 @@ int main(int argc, char** argv) {
 
 //    sc.view(cloud);
 //    sc.view(cloud2);
-  auto res = sc.allign_ICP(cloud,cloud2);
-
+  auto res = sc.align_ICP(cloud,cloud2);
+  ///sc.load_obj("poisson_test.obj");
   //pcl_helpers::poisson_reconstruction4<pcl::PointXYZRGB,pcl::PointXYZRGBNormal>(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
   //pcl_helpers::poisson_reconstruction4(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
   PolygonMesh mesh = sc.gp3Mls_reconstruction(res);

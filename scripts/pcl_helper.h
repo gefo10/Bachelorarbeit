@@ -21,6 +21,7 @@
 #include <pcl/common/common_headers.h>
 #include <pcl/registration/icp.h>
 #include <pcl/kdtree/kdtree_flann.h>
+#include "Eigen/SVD"
 
 #include <pcl/io/ply_io.h>
 #include "Point.h"
@@ -60,8 +61,9 @@ namespace pcl_helpers {
     void filterX(Cloud_simplePtr& cloud,float min, float max);
     void filterX(Cloud_rgbPtr& cloud,float min, float max);
     
-    void transform(Cloud_simplePtr& cloud, float x, float y, float z);
-    void transform(Cloud_rgbPtr& cloud, float x, float y, float z);
+    //apply transformation on pointcloud (rotation is in radians)
+    void transform(Cloud_simplePtr& cloud, float x, float y, float z,float rotation);
+    void transform(Cloud_rgbPtr& cloud, float x, float y, float z,float rotation);
     
     pcl::PointCloud<pcl::PointNormal>::Ptr smooth_mls(Cloud_simplePtr& cloud);
 
@@ -226,11 +228,50 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 }
 
 template<typename PointT>
-std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> RANSAC_SVD(
-	typename pcl::PointCloud<PointT>::Ptr cloud,
-	int maxIterations,
-	float distanceThreshold)
+void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, unsigned int numPoints, float distanceThreshold)
 {
+    using namespace Eigen;
+    MatrixXf m(numPoints,3);
+	srand(time(NULL));
+    
+    for(unsigned int i = 0; i < numPoints; i++)
+    {
+        unsigned int index = std::rand() % plane->points.size();
+        auto& p = plane->points[index];
+        
+        //insert into matrix
+        m << p.x,p.y,p.z;
+    }
+
+    JacobiSVD<Matrix3f> svd(m,ComputeFullV | ComputeFullU);
+    auto sig_values = svd.singularValues();
+    Vector3f x(sig_values(0,0),0.0f,0.0f);
+    Vector3f y(0.0f,sig_values(1,0),0.0f);
+    Vector3f n = x.cross(y);
+    n.normalize();
+
+
+    //chose a random point from the plane to filter the source point cloud
+    unsigned int index = std::rand() % plane->points.size();
+    auto& p_plane = plane->points[index];
+    Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
+
+    for(unsigned int i = 0; i< cloud->points.size(); i++)
+    {
+        auto& p_cloud = cloud->points[i];
+        Vector3f p_cloud_eigen(p_cloud.x, p_cloud.y, p_cloud.z);
+
+        float distance = (p_cloud_eigen - p_plane_eigen).dot(n);
+
+        if(distance > distanceThreshold) {
+            cloud->points.erase( cloud->points.begin() + i);
+            i--;
+        }
+
+    }
+
+
+
 
     
 }

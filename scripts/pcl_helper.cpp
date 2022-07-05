@@ -295,12 +295,12 @@ void pcl_helpers::fastTriangulation(const std::string &file_name,pcl::PointCloud
   pcl::io::saveOBJFile("mesh.obj",triangles);
 }
 
-void pcl_helpers::transform(Cloud_rgbPtr& cloud, float x, float y, float z)
+void pcl_helpers::transform(Cloud_rgbPtr& cloud, float x, float y, float z,float rotation)
 {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
 
 
-  float theta = M_PI/4; // The angle of rotation in radians
+  float theta = rotation; // The angle of rotation in radians
 
   Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
 
@@ -317,12 +317,12 @@ void pcl_helpers::transform(Cloud_rgbPtr& cloud, float x, float y, float z)
   pcl::transformPointCloud (*cloud, *transformed_cloud, transform_2);  
 }
 
- void pcl_helpers::transform(Cloud_simplePtr& cloud, float x, float y, float z)
+ void pcl_helpers::transform(Cloud_simplePtr& cloud, float x, float y, float z,float rotation)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZ> ());
 
 
-  float theta = M_PI/4; // The angle of rotation in radians
+  float theta = rotation; // The angle of rotation in radians
 
   Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
 

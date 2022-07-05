@@ -178,7 +178,6 @@ void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const i
 {
     sourceCloud.erase(std::remove_if(sourceCloud.begin(),sourceCloud.end(), [](auto& x) { return x.z > 1.0f || x.z <1e-8 || (x.x == 0 && x.y == 0 && x.z ==0); }),sourceCloud.end());
     targetCloud.erase(std::remove_if(targetCloud.begin(),targetCloud.end(), [](auto& x) { return x.z > 1.0f || x.z <1e-8 || (x.x == 0 && x.y == 0 && x.z ==0);  }),targetCloud.end());
-
     using namespace Eigen;
     Matrix3f rotation = Matrix3f::Identity();
     Vector3f translation = Vector3f::Zero();
@@ -203,7 +202,7 @@ void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const i
     size_t numPointsSource = sourceCloud.size();
     size_t numPointsTarget = targetCloud.size();
 
-   // const int numRandomSamples = 10000 % sourceCloud.size();
+    const int numRandomSamples = 1000 % sourceCloud.size();
    //std::cout << "samples: " << numRandomSamples << std::endl;
    Point p{0.f,0.f,0.f},x{0.f,0.f,0.f};
     
@@ -289,14 +288,14 @@ void test_cloud_random_shift(std::vector<Point>& cloud)
   Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
 
   // A rotation matrix (see https://en.wikipedia.org/wiki/Rotation_matrix)
-  double theta = M_PI / 8;  // The angle of rotation in radians
+  double theta = 90;  // The angle of rotation in radians
   transformation_matrix (0, 0) = std::cos (theta);
   transformation_matrix (0, 1) = -sin (theta);
   transformation_matrix (1, 0) = sin (theta);
   transformation_matrix (1, 1) = std::cos (theta);
 
   // A translation on Z axis (0.4 meters)
-  transformation_matrix (2, 3) = 0.4;
+  transformation_matrix (2, 3) = 0.0;
 
    Eigen::Matrix3f rotMatrix = Eigen::Matrix3f::Identity();
      rotMatrix.block<3,3>(0,0) = transformation_matrix.block<3,3>(0,0).cast<float>();
@@ -316,5 +315,23 @@ void test_cloud_random_shift(std::vector<Point>& cloud)
             cloud[i].z += transformation_matrix(2,3); 
 
    }
+
+}
+
+std::vector<Point>& icp(std::vector<std::vector<Point>>& frames, const int maxIterations)
+{
+    if(frames.size() == 0)
+        throw std::invalid_argument("No frames");
+
+   
+    int i = 1;
+    while(i != frames.size())
+    {
+        icp(frames[0],frames[i],maxIterations);
+        frames[0].insert(frames[0].end(),frames[i].begin(),frames[i].end());
+    }
+
+    return frames[0];
+    
 
 }
