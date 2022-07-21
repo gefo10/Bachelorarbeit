@@ -6,8 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(PCL 1.7 REQUIRED)
-find_package(Eigen 3.3 REQUIRED)
+find_package(PCL REQUIRED)
 
 include_directories( ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS})
 

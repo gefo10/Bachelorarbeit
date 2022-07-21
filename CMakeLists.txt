@@ -20,7 +20,7 @@ add_definitions(${GCC_COMPILE_FLAGS})
 
 
 
-find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3  REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 
 #include_directories(${GLFW_INCLUDE_DIRS})
