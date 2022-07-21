@@ -21,24 +21,12 @@ add_library(pcl_helper SHARED pcl_helper.cpp)
 add_library(scanner SHARED openGLPointCloud.hpp JsonParser.cpp Scanner.cpp)
 #add_library(jsonParser SHARED JsonParser.cpp)
 
-find_package(Eigen3 REQUIRED) #3.3 REQUIRED)
 find_package(PCL REQUIRED) #1.7 REQUIRED)
 
 #set(EXTERNAL_DEPENDENCIES ${GFLW_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
 
-set(EXTERNAL_DEPENDENCIES Eigen3::Eigen ${EXTERNAL_DEPENDENCIES})
-
-find_package(realsense2 REQUIRED)
-set(EXTERNAL_DEPENDENCIES realsense2::realsense2 ${EXTERNAL_DEPENDENCIES})
-
-find_package(OpenCV REQUIRED)
-set(EXTERNAL_DEPENDENCIES ${OpenCV_LIBS} ${EXTERNAL_DEPENDENCIES})
-
-find_package(nlohmann_json REQUIRED)
-set(EXTERNAL_DEPENDENCIES nlohmann_json::nlohmann_json ${EXTERNAL_DEPENDENCIES})
-
-#find_package(AndreiUtils REQUIRED)
-#set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
+find_package(AndreiUtils REQUIRED)
+set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
 
 
 target_include_directories(pcl_helper
