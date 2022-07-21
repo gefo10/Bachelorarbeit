@@ -8,10 +8,10 @@
         "max_iterations" : 30
     },
     "ransac": {
-        "distanceThreshold" : 1e-08,
+        "distanceThreshold" : 0.000,
         "numberOfPoints" : 100
     },
     "save_folder":{
-        "path" : "/"
+        "path" : "./"
     }
 }

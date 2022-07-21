@@ -36,18 +36,13 @@ class Scanner {
         :Scanner("../config/defaultConfig.json") 
     {};
 
-    //Scanner(float width,float height,const std::string& name)
-    //    : window_width(width), 
-    //      window_height(height), 
-    //      window_name(name)
-    //{};
-
     Scanner(std::string json_file)
-       : config(json_file),
-         window_width(config.GetWindowWidth()),
-         window_height(config.GetWindowHeight()),
-         window_name(config.GetWindowName()) 
-    {};
+       : config(json_file)
+    {
+        window_width = config.GetWindowWidth();
+        window_height = config.GetWindowHeight();
+        window_name = config.GetWindowName();
+    };
 
     void pointcloud_activateCamera();
 
@@ -153,7 +148,7 @@ class Scanner {
     //Randsac using SVD 
     //######################################################
     template<typename PointT>
-    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, unsigned int numPoints, float distanceThreshold)
+    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, int numPoints, float distanceThreshold)
     {
         pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,numPoints,distanceThreshold);
     }

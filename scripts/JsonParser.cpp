@@ -27,7 +27,6 @@ JsonParser::JsonParser(std::string filename)
     } else {
         throw std::invalid_argument("File couldn't open");
     }
-    cout << ss.str() << endl << flush;
     Json content = Json::parse(ss.str());
     if(content.contains("window"))
     {

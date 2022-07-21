@@ -1,5 +1,6 @@
 #pragma once 
 #include <Eigen/Dense>
+#include <Eigen/Eigen>
 #include <librealsense2/rs.hpp>
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
@@ -22,7 +23,7 @@
 #include <pcl/registration/icp.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include "Eigen/SVD"
-
+#include <typeinfo>
 #include <pcl/io/ply_io.h>
 #include "Point.h"
 
@@ -38,6 +39,7 @@ using Cloud_rgb = pcl::PointCloud<pcl::PointXYZRGB>;
 std::tuple<int,int,int> RGB_Texture(rs2::video_frame,rs2::texture_coordinate);
 
 namespace pcl_helpers {
+
     Cloud_simplePtr load_PLY(const std::string &file_name,Cloud_simplePtr cloud_ptr);
     Cloud_rgbPtr load_PLY(const std::string &file_name, Cloud_rgbPtr cloud_ptr);
 
@@ -69,7 +71,26 @@ namespace pcl_helpers {
 
     Cloud_simple::Ptr pc_toPCL(const rs2::points&);
     Cloud_rgb::Ptr pcRGB_toPCL(const rs2::points&,const rs2::video_frame&);
-    
+    template<typename PointT>
+    PointT computeCloudMean(typename pcl::PointCloud<PointT>::Ptr cloud)
+    {
+         PointT mean;
+         mean.x = 0;
+         mean.y = 0;
+         mean.z = 0;
+         for (int i = 0; i < cloud->points.size(); i++)
+         {
+               mean.x += cloud->points[i].x;
+               mean.y += cloud->points[i].y;
+               mean.z += cloud->points[i].z;
+         }
+         mean.x = mean.x / cloud->points.size();//static_cast<float>(cloud.size());
+         mean.y = mean.y / cloud->points.size();//static_cast<float>(cloud.size());
+         mean.z = mean.z / cloud->points.size();//static_cast<float>(cloud.size());
+   
+     return mean;
+
+    } 
     template<typename PointT>
     std::pair<typename pcl::PointCloud<PointT>::Ptr,typename pcl::PointCloud<PointT>::Ptr> ransac_impl(typename pcl::PointCloud<PointT>::Ptr& cloud,int maxIterations,float distanceThreshold)
     {
@@ -228,47 +249,134 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 }
 
 template<typename PointT>
-void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, unsigned int numPoints, float distanceThreshold)
+void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, int numPoints, float distanceThreshold)
 {
     using namespace Eigen;
-    MatrixXf m(numPoints,3);
+
+    plane->points.erase(std::remove_if(plane->points.begin(),plane->points.end(), [](auto& x) { return x.z > 10.0f; }),plane->points.end());
+    cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [](auto& x) { return x.z > 1.0f; }),cloud->points.end());
+    //cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [](auto& x) { return x.z > 1.0f; }),cloud->points.end());
+
+    MatrixXf m (plane->points.size(),3);
+    //Matrix<float,numPoints,3> m;
 	srand(time(NULL));
+
+    std::cout << m.size() << std::endl << std::flush;
     
-    for(unsigned int i = 0; i < numPoints; i++)
+    for(int i = 0; i < plane->points.size(); i++)
     {
-        unsigned int index = std::rand() % plane->points.size();
-        auto& p = plane->points[index];
-        
+        //unsigned int index = std::rand() % plane->points.size();
+        auto& p = plane->points[i];
         //insert into matrix
-        m << p.x,p.y,p.z;
+        m(i,0) = p.x;
+        m(i,1) = p.y;
+        m(i,2) = p.z;
     }
 
-    JacobiSVD<Matrix3f> svd(m,ComputeFullV | ComputeFullU);
+    JacobiSVD<MatrixXf> svd(m,ComputeThinU | ComputeFullV);
     auto sig_values = svd.singularValues();
-    Vector3f x(sig_values(0,0),0.0f,0.0f);
-    Vector3f y(0.0f,sig_values(1,0),0.0f);
-    Vector3f n = x.cross(y);
+    std::cout << typeid(sig_values).name() << "    size:"  << sig_values.size() << std::endl << std::flush;
+
+    PointT mean = computeCloudMean<PointT>(plane);
+
+    Vector3f mean_eigen(mean.x,mean.y,mean.z);
+    Vector3f x(sig_values(0,0)+mean.x,mean.y,mean.z);
+    Vector3f y(mean.x,sig_values(1,0)+mean.y,mean.z);
+    Vector3f n = (x-mean_eigen).cross((y-mean_eigen));
     n.normalize();
+    PointT normal;
+    normal.x = n(0)/10;
+    normal.y = n(1)/10;
+    normal.z = n(2)/10;
+    normal.r = 255;
+    normal.g = 0;
+    normal.b = 0;
+    
+    cloud->points.push_back(normal);
+
 
 
     //chose a random point from the plane to filter the source point cloud
-    unsigned int index = std::rand() % plane->points.size();
-    auto& p_plane = plane->points[index];
-    Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
-
-    for(unsigned int i = 0; i< cloud->points.size(); i++)
+    //unsigned int index = std::rand() % plane->points.size();
+    //auto& p_plane = plane->points[index];
+    //
+    float max_y = -1000.0f;
+    PointT p_plane;
+    for (int i=0 ; i< plane->points.size(); i++)
     {
-        auto& p_cloud = cloud->points[i];
-        Vector3f p_cloud_eigen(p_cloud.x, p_cloud.y, p_cloud.z);
-
-        float distance = (p_cloud_eigen - p_plane_eigen).dot(n);
-
-        if(distance > distanceThreshold) {
-            cloud->points.erase( cloud->points.begin() + i);
-            i--;
+        auto& tmp = plane->points[i];
+        if(max_y < tmp.y)
+        {
+            max_y = tmp.y;
+            p_plane = tmp;
         }
-
+        
     }
+    p_plane.g = 255;
+    p_plane.r = 0;
+    p_plane.b = 0;
+
+    cloud->points.push_back(p_plane);
+
+    Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
+    cloud->height = 1;
+    cloud->width = cloud->points.size();
+    distanceThreshold = 0.01f;
+    cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(),       
+          [&n,&distanceThreshold,&mean_eigen,&p_plane_eigen,&cloud](auto& x) { 
+             
+                Vector3f p_cloud_eigen(x.x, x.y, x.z);
+                float distance = (p_cloud_eigen-mean_eigen).dot(n-mean_eigen);
+
+                if (distance <= 0)
+                    cloud->width -= 1;
+                //if (distance <= distanceThreshold)
+                //    std::cout << distance << std::endl << std::flush;
+
+               // PointT p;
+               // p.x = (p_cloud_eigen-p_plane_eigen)(0);
+               // p.y = (p_cloud_eigen-p_plane_eigen)(1);
+               // p.z = (p_cloud_eigen-p_plane_eigen)(2);
+               // p.r = 0;
+               // p.g =255;
+               // p.b = 0;
+
+                return distance <= distanceThreshold;
+                
+                }),cloud->points.end());
+
+    PointT origin;
+    origin.x = 0.f;
+    origin.y =0.f;
+    origin.z =0.f;
+    origin.r = 0.f;
+    origin.b =0.f;
+    origin.g =0.f;
+
+    //for(unsigned int i = 0; i< cloud->points.size(); i++)
+    //{
+    //    auto& p_cloud = cloud->points[i];
+    //    Vector3f p_cloud_eigen(p_cloud.x, p_cloud.y, p_cloud.z);
+
+    //    float distance = (p_cloud_eigen - p_plane_eigen).dot(n);
+
+    //    if(distance <= distanceThreshold) { 
+    //        cloud->points.erase( cloud->points.begin() + i);
+    //        i--;
+    //    }
+
+    //}
+
+  //  cloud->points.push_back(p_plane);
+
+  //  mean.r = 255; mean.g = 0; mean.b = 0;
+  //  cloud->points.push_back(mean);
+  //  cloud->points.push_back(normal);
+  //  for(auto& p : plane->points){
+  //      p.r = 0; p.g = 0; p.b = 255;
+  //      cloud->points.push_back(p);
+  //  }
+
 
 
 
@@ -365,7 +473,8 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
 
            n.setInputCloud(cloudTranslated);
            n.setSearchMethod(kdtree_for_points);
-           n.setKSearch(20); //It was 20
+           //n.setKSearch(15); //It was 20
+           n.setRadiusSearch(0.1);
            n.compute(*normals);//Normals are estimated using standard method.
 
            //pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointNormal> ());
@@ -421,15 +530,15 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
             std::cout << "Using surface method: poisson ..." << std::endl;
 
             int nThreads=8;
-            int setKsearch=10;
-            int depth=7;
-            float pointWeight=2.0;
-            float samplePNode=1.5;
-            float scale=1.1;
+            int setKsearch=10; //was 10
+            int depth=10; // was 7
+            float pointWeight=2.0; //was 2.0
+            float samplePNode=20;//1.5
+            float scale=1.0; //was 1.1 
             int isoDivide=8;
             bool confidence=true;
             bool outputPolygons=true;
-            bool manifold=true;
+            bool manifold=true;//was true
             int solverDivide=8;
 
             typename pcl::Poisson<PointTNormal> poisson;

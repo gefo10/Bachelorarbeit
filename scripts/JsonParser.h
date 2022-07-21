@@ -9,8 +9,8 @@ class JsonParser {
         JsonParser() = delete; 
         JsonParser(std::string file_name);
 
-        std::string GetFileName() const { return filename; };
-        std::string GetWindowName() const { return window_name; };
+        std::string GetFileName() { return filename; };
+        std::string GetWindowName() { return window_name; };
         float GetWindowWidth() const { return window_width; };
         float GetWindowHeight() const { return window_height; };
         int GetMaxIterationsICP() const { return max_iterations_icp; };

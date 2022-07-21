@@ -37,17 +37,15 @@ int main(int argc, char** argv) {
     //std::string model("../raptor-model/source/raptor.ply");
     
     
-   std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
+   //std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
 
    // std::string model("../spartan_recap2.ply");
-   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
     Scanner sc;
-    sc.load<pcl::PointXYZRGB>("../data/pc_captured10.pcd",cloud);
-
-
-    sc.load<pcl::PointXYZRGB>("../data/pc_captured11.pcd",cloud2);
+    //sc.load<pcl::PointXYZRGB>("../data/pc_captured10.pcd",cloud);
+    //sc.load<pcl::PointXYZRGB>("../data/pc_captured11.pcd",cloud2);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
 
@@ -76,17 +74,17 @@ int main(int argc, char** argv) {
 
 //    sc.view(cloud);
 //    sc.view(cloud2);
-  auto res = sc.align_ICP(cloud,cloud2);
+////  auto res = sc.align_ICP(cloud,cloud2);
   ///sc.load_obj("poisson_test.obj");
   //pcl_helpers::poisson_reconstruction4<pcl::PointXYZRGB,pcl::PointXYZRGBNormal>(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
   //pcl_helpers::poisson_reconstruction4(res,2,2,mesh); // 2 -> GreedyProjection triangulation, 2 -> mls works best
-  PolygonMesh mesh = sc.gp3Mls_reconstruction(res);
+////PolygonMesh mesh = sc.gp3Mls_reconstruction(res);
   // pcl_helpers::poisson_reconstruction5<pcl::PointXYZ>(cloud_ptr,mesh);
   //Mesh mesh_obj;
   //mesh_obj.loadOBJ("poisson_test.obj");
   //sc.load_obj("poisson_test.ply");
 
-  pcl_helpers::view(mesh);
+////pcl_helpers::view(mesh);
 
   //sc.load_obj("poisson_test.obj");
     //sc.view(res);
@@ -129,8 +127,35 @@ int main(int argc, char** argv) {
 
  //  std::cout << "x:" << result.x << " y:" << result.y << " z:" << result.z << std::endl;
     
+   //std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> cloud_cloud = sc.capture_FramesXYZRGB(true,2);
+   //std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> cloud_obj = sc.capture_FramesXYZRGB(true,3);
+ //  int i = 0;
+ //  for(auto& f: cloud_cloud)
+ //      sc.save_pcd<pcl::PointXYZRGB>("../data/test_ransac_" + std::to_string(++i) + ".pcd", *f);
+ //       
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+sc.load<pcl::PointXYZRGB>("../data/test_ransac2.pcd",cloud);
+sc.load<pcl::PointXYZRGB>("../data/test_ransac_obj2.pcd",cloud2);
 
- //  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_test = sc.captureOnce_PcRGBData(true);
+sc.view(cloud2);
+sc.view(cloud);
+cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [](auto& x) { return x.z > 1.0f || x.z <1e-8; }),cloud->points.end());
+sc.view(cloud);
+sc.ransac_SVD<pcl::PointXYZRGB>(cloud2,cloud);
+
+  // for(int i=0; i < cloud_cloud.size(); i ++)
+  // {
+  //     for(int j = 0; j < cloud_obj.size(); j++)
+  //         sc.ransac_SVD<pcl::PointXYZRGB>(cloud_obj[j],cloud_cloud[i]); 
+  // }
+sc.view(cloud2);
+
+//PolygonMesh mesh = sc.poissonNormal_reconstruction(cloud2);
+
+//sc.view(mesh);
+
+//   sc.view(cloud_obj[2]);
  //  std::pair<pcl::PointCloud<pcl::PointXYZRGB>::Ptr,pcl::PointCloud<pcl::PointXYZRGB>::Ptr> segmentation = pcl_helpers::ransac_impl<pcl::PointXYZRGB>(cloud2,400,0.5f);
  //  cloud2->points.clear();
  //   for(int i = 0; i < segmentation.first->points.size(); i++) {

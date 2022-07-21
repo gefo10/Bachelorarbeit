@@ -55,6 +55,7 @@ class Window
       //static void OnMouseMove(GLFWwindow* window, double posX, double posY);
       
       void clearScreen() { glClearColor(0.20f,0.30f,0.40f,1.0f); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);};
+      //void clearScreen() { glClearColor(1.f,1.f,1.f,1.0f); glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);};
 
       void swapInterval(int interval) { glfwSwapInterval(interval); };
 
