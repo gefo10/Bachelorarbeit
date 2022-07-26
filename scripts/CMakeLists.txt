@@ -65,6 +65,7 @@ target_include_directories(scanner
 #set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES} glfw ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} myLibrary) #Threads::Threads)
 set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES} myLibrary algorithms) #Threads::Threads)
 #target_link_libraries(jsonParser ${AndreiUtils_LIBRARY})
+target_link_libraries(pcl_helper algorithms)
 target_link_libraries(scanner ${EXTERNAL_DEPENDENCIES} pcl_helper)
 
 

@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include <pcl/io/ply_io.h>
 #include "Point.h"
+#include <cmath>
 
 //#include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
 //#include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
@@ -252,9 +253,27 @@ template<typename PointT>
 void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, int numPoints, float distanceThreshold)
 {
     using namespace Eigen;
+    plane->width = plane->points.size();
+    plane->height = 1;
 
-    plane->points.erase(std::remove_if(plane->points.begin(),plane->points.end(), [](auto& x) { return x.z > 10.0f; }),plane->points.end());
-    cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [](auto& x) { return x.z > 1.0f; }),cloud->points.end());
+    plane->points.erase(std::remove_if(plane->points.begin(),plane->points.end(), [&plane](auto& x) 
+			    { //return x.z > 2.0f or x.y < 1.0f or x.x < 3.0f or x.x > -3.0f; 
+			      bool val = x.z > 1.5f or x.y < 0.8f or x.y > 3.f or x.x < -1.f or x.x > 1.f; 
+			      if(val) plane->width--;
+			      return val;
+			      //float distance = sqrt(pow(node.current->x - cu.x, 2.0) + pow(node.current->y - p.y, 2.0) + pow(node.current->z - p.z, 2.0));
+
+			    }),plane->points.end());
+
+
+    cloud->width = cloud->points.size();
+    cloud->height = 1;
+    cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [&cloud](auto& x) { 
+			    bool val = x.z > 1.5f;; //or x.y < -7.0f ; 
+			    if(val) cloud->width--;
+			    return val;
+
+			    }),cloud->points.end());
     //cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(), [](auto& x) { return x.z > 1.0f; }),cloud->points.end());
 
     MatrixXf m (plane->points.size(),3);
@@ -273,21 +292,32 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
         m(i,2) = p.z;
     }
 
+    std::cout << "AAAAAAAAAAAAAAAaaa" << std::endl << std::flush;
     JacobiSVD<MatrixXf> svd(m,ComputeThinU | ComputeFullV);
+    std::cout << "BBBBBBBBBBBBBBBBB" << std::endl << std::flush;
+    auto v= svd.matrixV(); 
+    Vector3f x = v.col(0);
+    Vector3f y = v.col(1);
+    Vector3f z = x.cross(y);
     auto sig_values = svd.singularValues();
     std::cout << typeid(sig_values).name() << "    size:"  << sig_values.size() << std::endl << std::flush;
 
     PointT mean = computeCloudMean<PointT>(plane);
 
     Vector3f mean_eigen(mean.x,mean.y,mean.z);
-    Vector3f x(sig_values(0,0)+mean.x,mean.y,mean.z);
-    Vector3f y(mean.x,sig_values(1,0)+mean.y,mean.z);
-    Vector3f n = (x-mean_eigen).cross((y-mean_eigen));
+    // Vector3f x(sig_values(0,0)+mean.x,mean.y,mean.z);
+    // Vector3f y(mean.x,sig_values(1,0)+mean.y,mean.z);
+    x += mean_eigen;
+    y += mean_eigen;
+   // Vector3f y(mean.x,sig_values(1,0)+mean.y,mean.z);
+
+    //Vector3f n = (x-mean_eigen).cross((y-mean_eigen));
+    Vector3f n = -z;
     n.normalize();
     PointT normal;
-    normal.x = n(0)/10;
-    normal.y = n(1)/10;
-    normal.z = n(2)/10;
+    normal.x = n(0);
+    normal.y = n(1);
+    normal.z = n(2);
     normal.r = 255;
     normal.g = 0;
     normal.b = 0;
@@ -316,19 +346,20 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     p_plane.r = 0;
     p_plane.b = 0;
 
-    cloud->points.push_back(p_plane);
+    std::cout << "p_plane : " << p_plane.x << "  " << p_plane.y << "  " << p_plane.z << std::endl;
+
 
     Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
     cloud->height = 1;
     cloud->width = cloud->points.size();
-    distanceThreshold = 0.01f;
+    distanceThreshold = 0.001f;
     cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(),       
           [&n,&distanceThreshold,&mean_eigen,&p_plane_eigen,&cloud](auto& x) { 
              
                 Vector3f p_cloud_eigen(x.x, x.y, x.z);
                 float distance = (p_cloud_eigen-mean_eigen).dot(n-mean_eigen);
 
-                if (distance <= 0)
+                if (distance <= distanceThreshold)
                     cloud->width -= 1;
                 //if (distance <= distanceThreshold)
                 //    std::cout << distance << std::endl << std::flush;
@@ -349,9 +380,12 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     origin.x = 0.f;
     origin.y =0.f;
     origin.z =0.f;
-    origin.r = 0.f;
-    origin.b =0.f;
-    origin.g =0.f;
+    origin.r =0;
+    origin.b =0;
+    origin.g =0;
+    cloud->points.push_back(p_plane);
+
+    cloud->points.push_back(origin);
 
     //for(unsigned int i = 0; i< cloud->points.size(); i++)
     //{
@@ -369,13 +403,13 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
 
   //  cloud->points.push_back(p_plane);
 
-  //  mean.r = 255; mean.g = 0; mean.b = 0;
-  //  cloud->points.push_back(mean);
-  //  cloud->points.push_back(normal);
-  //  for(auto& p : plane->points){
-  //      p.r = 0; p.g = 0; p.b = 255;
-  //      cloud->points.push_back(p);
-  //  }
+   mean.r = 255; mean.g = 0; mean.b = 0;
+   cloud->points.push_back(mean);
+   cloud->points.push_back(normal);
+   for(auto& p : plane->points){
+       p.r = 0; p.g = 0; p.b = 255;
+       cloud->points.push_back(p);
+   }
 
 
 

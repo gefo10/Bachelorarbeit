@@ -21,7 +21,7 @@ add_definitions(${GCC_COMPILE_FLAGS})
 
 
 find_package(Eigen3  REQUIRED)
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL REQUIRED)
 
 #include_directories(${GLFW_INCLUDE_DIRS})
 set(EXTERNAL_DEPENDENCIES ${GFLW_LIBRARIES} ${EXTERNAL_DEPENDENCIES})

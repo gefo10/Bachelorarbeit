@@ -15,7 +15,7 @@ Window::Window(int width, int height, const char* title)
     _camData.MOUSE_SENSITIVITY= 0.15f;
     _camData.ZOOM_SENSITIVITY = -3.0;
     //_camData.camera.setLookAt(glm::vec3(0.f,0.f,-1.0f));
-    _camData.camera.setPosition(glm::vec3(0.0f,0.0f,5.0f));
+    _camData.camera.setPosition(glm::vec3(0.0f,0.0f,0.0f));
     _camData.camera.rotate(_camData.yaw,_camData.pitch);
     //_camData.camera.setRadius(_camData.radius);
     _camData.width = &width;
