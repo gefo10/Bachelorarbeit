@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <GL/glew.h>
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <ScannerLib/VertexBuffer.h>
 #include <ScannerLib/Shader.h>
 #include <ScannerLib/VertexArray.h>

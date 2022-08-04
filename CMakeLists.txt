@@ -1,108 +1,88 @@
-
 cmake_minimum_required(VERSION 3.16)
-project(CloudPointMeshGeneration)
 
-set(CMAKE_CXX_STANDARD 14)
+project(ScannerLib)  # sets PROJECT_NAME variable
+set(PROJECT_VERSION_STRING "0.0.1")
+set(PROJECT_TARGET scanner)
+set(PROJECT_INCLUDE_PREFIX ${PROJECT_NAME})
 
-set(OPENCV_VERSION "" CACHE STRING "The opencv version to use in the project")
 
+include(GNUInstallDirs)
+
+set(CMAKE_CXX_STANDARD 11)
 if (WIN32)
     set(EXTERNAL_DEPENDENCIES wsock32 ws2_32 ${EXTERNAL_DEPENDENCIES})
+    set(EXTERNAL_DEPENDENCIES_GENERAL wsock32 ws2dd_32 ${EXTERNAL_DEPENDENCIES_GENERAL})
 else (WIN32)
     set(EXTERNAL_DEPENDENCIES pthread ${EXTERNAL_DEPENDENCIES})
 endif (WIN32)
 
-
-
-set(GCC_COMPILE_FLAGS "-g -ggdb3")
-
-add_definitions(${GCC_COMPILE_FLAGS})
-
-
-
+find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(AndreiUtils REQUIRED)
 find_package(Eigen3  REQUIRED)
 find_package(PCL REQUIRED)
-
-#include_directories(${GLFW_INCLUDE_DIRS})
-set(EXTERNAL_DEPENDENCIES ${GFLW_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
-
-#include_directories(${PCL_INCLUDE_DIRS})
-#link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
-set(EXTERNAL_DEPENDENCIES ${PCL_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
-
-
-
-#include_directories(${EIGEN3_INCLUDE_DIRS})
-set(EXTERNAL_DEPENDENCIES Eigen3::Eigen ${EXTERNAL_DEPENDENCIES})
-
 find_package(realsense2 REQUIRED)
-#include_directories(${realsense2_INCLUDE_DIR})
+
+include_directories(${realsense2_INCLUDE_DIR})
+include_directories( ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIRS})
+
+add_subdirectory(external_dependencies)
+set(EXTERNAL_DEPENDENCIES glfw ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRRARIES} GLEW::GLEW Eigen3::Eigen)
+set(EXTERNAL_DEPENDENCIES ${realsense2_LIBRARY} ${EXTERNAL_DEPENDENCIES})
+set(EXTERNAL_DEPENDENCIES ${GFLW_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
+set(EXTERNAL_DEPENDENCIES ${PCL_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
 set(EXTERNAL_DEPENDENCIES realsense2::realsense2 ${EXTERNAL_DEPENDENCIES})
-
-find_package(OpenCV REQUIRED)
-set(EXTERNAL_DEPENDENCIES ${OpenCV_LIBS} ${EXTERNAL_DEPENDENCIES})
-
-#find_package(AndreiUtils REQUIRED)
-#include_directories(${CGAL_INCLUDE_DIRS})
-#set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
-
-#find_package(CGAL)
-
-#include_directories(${CGAL_INCLUDE_DIRS})
-#set(EXTERNAL_DEPENDENCIES ${CGAL_LIBS} ${EXTERNAL_DEPENDENCIES})
-#find_package(glm REQUIRED)
-#include_directories(${GLM_INCLUDE_DIRS})
-#link_directories(${GLM_LIBRARY_DIRS})
-#add_definitions(${GLM_DEFINITIONS})
-
+set(EXTERNAL_DEPENDENCIES Eigen3::Eigen ${EXTERNAL_DEPENDENCIES})
+set(EXTERNAL_DEPENDENCIES ${AndreiUtils_LIBRARY} ${EXTERNAL_DEPENDENCIES})
 
 include_directories("include")
 
-#set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-#set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-#find_package(Threads REQUIRED)
 
 
-#find_package(OpenGL REQUIRED)
-#find_package(GLUT REQUIRED)
 
-include_directories( ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+set(VISUALIZER_SRC_FILES src/Window.cpp src/Renderer.cpp src/IndexBuffer.cpp src/VertexBuffer.cpp src/VertexArray.cpp src/VertexBufferLayout.cpp src/Shader.cpp src/Camera.cpp src/Mesh.cpp src/openGLPointCloud.cpp)
+set(ALGORITHMS_SRC_FILES src/KdTree.cpp src/ICP.cpp)
+set(JSONPARSER_SRC_FILES src/JsonParser.cpp)
+set(PCL_HELPERS_SRC_FILES src/pcl_helper.cpp)
+set(SCANNER_SRC_FILES src/Scanner.cpp)
+
+set(SRC_FILES ${VISUALIZER_SRC_FILES} ${ALGORITHMS_SRC_FILES} ${JSONPARSER_SRC_FILES} ${PCL_HELPERS_SRC_FILES} ${SCANNER_SRC_FILES})
+# GENERAL_UTILS
+
+add_library(scanner ${SRC_FILES})
+target_link_libraries(scanner ${EXTERNAL_DEPENDENCIES})
+target_include_directories(scanner
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        )
+
+message(${EXTERNAL_DEPENDENCIES})
+
+set(EXTERNAL_DEPENDENCIES scanner ${EXTERNAL_DEPENDENCIES})
 
 add_executable(main testing.cpp)
-#add_subdirectory(external_dependencies/glfw)
-
-add_subdirectory(scripts)
-
-#include_directories(external_dependencies/imgui/ external_dependencies/imgui/backends/)
-
-target_include_directories(main
-    #    PUBLIC external_dependencies/glfw/include/
-    #PUBLIC external_dependencies/CGAL/CGAL_Core/include/
-    #PUBLIC external_dependencies//CGAL/CGAL_ImageIO/include/
-    PUBLIC scripts/
-    PUBLIC external_dependencies/imgui/
-    PUBLIC external_dependencies/imgui/backends/
-    PUBLIC ${realsense2_INCLUDE_DIR}
-    PUBLIC ${EIGEN3_INCLUDE_DIRS}
-    PUBLIC ${PCL_INCLUDE_DIRS}
-#    PUBLIC ${GLFW_INCLUDE_DIRS}
-)
-target_link_directories(main
-    PRIVATE external_dependencies/glfw/src
-    # PRIVATE external_dependencies/CGAL
-    PRIVATE scripts
-    PRIVATE external_dependencies/imgui
-    PRIVATE ${PCL_LIBRARY_DIRS}
-)
+target_link_libraries(main scanner)
 
 
-set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES}  scanner)
-#set(EXTERNAL_DEPENDENCIES ${EXTERNAL_DEPENDENCIES} glfw ${GLUT_LIBRARY} ${OPENGL_LIBRARIES} pcl_helper scanner Threads::Threads)
+install(DIRECTORY external_dependencies/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/)
+#
+#install(TARGETS scanner EXPORT ScannerLibTargets ARCHIVE
+#
+#  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ScannerLib
+#
+#)
+#
+#install(EXPORT ScannerLibTargets
+#
+#    DESTINATION ${CMAKE_INSTALL_LIBDIR}/ScannerLib/cmake
+#
+#    NAMESPACE ScannerLib::
+#
+#)
 
-target_link_libraries(main ${EXTERNAL_DEPENDENCIES})
 
-#add_executable(TestJson testJson.cpp)
-#target_link_libraries(TestJson ${AndreiUtils_LIBRARY})
-
+include(cmake/installConfig.cmake)
 

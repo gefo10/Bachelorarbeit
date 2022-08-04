@@ -22,12 +22,10 @@
 #include <pcl/common/common_headers.h>
 #include <pcl/registration/icp.h>
 #include <pcl/kdtree/kdtree_flann.h>
-#include "Eigen/SVD"
+#include <Eigen/SVD>
 #include <typeinfo>
 #include <pcl/io/ply_io.h>
-
 #include <ScannerLib/Point.h>
-
 #include <cmath>
 
 //#include <pcl/surface/on_nurbs/fitting_surface_tdm.h>

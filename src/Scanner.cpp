@@ -330,24 +330,23 @@ catch (const std::exception & e)
     std::cerr << e.what() << std::endl;
 }
 
-
-std::string pretty_time(std::chrono::nanoseconds duration)
-{
-    using namespace std::chrono;
-    auto hhh = duration_cast<hours>(duration);
-    duration -= hhh;
-    auto mm = duration_cast<minutes>(duration);
-    duration -= mm;
-    auto ss = duration_cast<seconds>(duration);
-    duration -= ss;
-    auto ms = duration_cast<milliseconds>(duration);
-
-    std::ostringstream stream;
-    stream << std::setfill('0') << std::setw(hhh.count() >= 10 ? 2 : 1) << hhh.count() << ':' <<
-        std::setfill('0') << std::setw(2) << mm.count() << ':' <<
-        std::setfill('0') << std::setw(2) << ss.count();
-    return stream.str();
-}
+//std::string pretty_time(std::chrono::nanoseconds duration)
+//{
+//    using namespace std::chrono;
+//    auto hhh = duration_cast<hours>(duration);
+//    duration -= hhh;
+//    auto mm = duration_cast<minutes>(duration);
+//    duration -= mm;
+//    auto ss = duration_cast<seconds>(duration);
+//    duration -= ss;
+//    auto ms = duration_cast<milliseconds>(duration);
+//
+//    std::ostringstream stream;
+//    stream << std::setfill('0') << std::setw(hhh.count() >= 10 ? 2 : 1) << hhh.count() << ':' <<
+//        std::setfill('0') << std::setw(2) << mm.count() << ':' <<
+//        std::setfill('0') << std::setw(2) << ss.count();
+//    return stream.str();
+//}
 
 
 std::vector<Point> Scanner::convert_pcl_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)

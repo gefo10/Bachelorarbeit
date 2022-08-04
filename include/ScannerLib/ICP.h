@@ -7,9 +7,10 @@
 #include <ScannerLib/Point.h>
 #include <ScannerLib/pcl_helper.h>
 #include <Eigen/Core>
-const double eps = 1e-0;
-double error = 100.0f;
-int max_iterations = 2;
+
+extern const double eps;
+extern double error;
+extern int max_iterations;
 
 
 void icp(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud,const int maxIterations=max_iterations);
@@ -19,30 +20,6 @@ Point computeCloudMean(std::vector<Point>& cloud);
 double compute_error(Point& targetPoint, Point& sourcePoint, Eigen::Matrix3f rotationMatrix, Eigen::Vector3f translationVector);
 void rotate(Point& p, Eigen::Matrix3f rotationMatrix);
 void translate(Point& p, Eigen::Vector3f translationVector);
-
-void icp_demo_pcl(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud,const int maxIterations=max_iterations)
-{
-    sourceCloud->points.erase(std::remove_if(sourceCloud->points.begin(),sourceCloud->points.end(), [](auto& x) { return x.z > 1.0f || x.z <1e-8 || (x.x == 0 && x.y == 0 && x.z ==0); }),sourceCloud->points.end());
-    targetCloud->points.erase(std::remove_if(targetCloud->points.begin(),targetCloud->points.end(), [](auto& x) { return x.z > 1.0f || x.z <1e-8 || (x.x == 0 && x.y == 0 && x.z ==0);  }),targetCloud->points.end());
-    
-      Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
-      pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
-      icp.setMaximumIterations (maxIterations);
-      icp.setInputSource (sourceCloud);
-      icp.setInputTarget (targetCloud);
-      icp.align (*sourceCloud);
-      icp.setMaximumIterations (1);  // We set this variable to 1 for the next time we will call .align () function
-
-      if (icp.hasConverged ())
-      {
-          return;
-      }
-      else
-      {
-        PCL_ERROR ("\nICP has not converged.\n");
-      }
-}
-
 void test_cloud_random_shift(std::vector<Point>& cloud);
 
 

@@ -5,6 +5,10 @@
 #include <Eigen/SVD>
 #include <Eigen/Core>
 
+const double eps = 1e-0;
+double error = 100.0f;
+int max_iterations = 2;
+
 void icp(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud,const int maxIterations)
 {
     sourceCloud.erase(std::remove_if(sourceCloud.begin(),sourceCloud.end(), [](auto& x) { return x->x == -0 || x->y == -0 || x->z == -0 || (x->x == 0 && x->y == 0 && x->z ==0); }));

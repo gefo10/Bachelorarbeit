@@ -1,8 +1,6 @@
 //#include <librealsense2/rs.hpp>
 #include <iostream>
-#include <AndreiUtils/utilsOpenCVRealsense.h>
 #include <Eigen/Dense>
-#include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 
 //#include <pcl/filters/passthrough.h>
@@ -13,7 +11,7 @@
 //#include <pcl/common/transforms.h>
 //#include <pcl/visualization/pcl_visualizer.h>
 //#include <pcl/common/common_headers.h>
-#include "pcl_helper.h"
+#include <ScannerLib/pcl_helper.h>
 #include <string>
 //#include <pcl/kdtree/kdtree_flann.h>
 //#include <pcl/features/normal_3d.h>
@@ -24,13 +22,14 @@
 //#include <pcl/search/kdtree.h> // for KdTree
 //#include <pcl/surface/mls.h>
 #include <thread>
-#include "Scanner.h"
+#include <ScannerLib/Scanner.h>
 #include <GLFW/glfw3.h>
 //#include <CGAL/IO/read_ply_points.h>
 //#include <CGAL/Polyhedron_3.h>
-#include "KdTree.h"
-#include "Point.h"
-int main2();
+#include <ScannerLib/KdTree.h>
+#include <ScannerLib/Point.h>
+
+
 
 //void testICP() 
 //{
@@ -56,10 +55,10 @@ void testRANSAC()
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-    Scanner sc;
+    Scanner sc("../config/defaultConfig.json");
     
-    sc.load<pcl::PointXYZRGB>("rec2_plane.pcd",cloud);
-    sc.load<pcl::PointXYZRGB>("rec2_obj.pcd",cloud2);
+    sc.load<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
+    sc.load<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
   //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
 

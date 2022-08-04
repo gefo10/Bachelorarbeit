@@ -1,4 +1,5 @@
-#include <ScannerLib/pcl_helper.h>
+#pragma once
+//#include <ScannerLib/pcl_helper.h>
 #include <GL/glew.h>
 #include <ScannerLib/openGLPointCloud.hpp>
 
@@ -8,22 +9,20 @@
 #include <iostream>
 #include <fstream>
 //#include <pcl/io/pcd_io.h>
-
 #include <ScannerLib/ICP.h>
-
-#include <ScannerLib/Window.h>
+//#include <ScannerLib/Window.h>
 #include <ScannerLib/Renderer.h>
 //#include <pcl/PolygonMesh.h>
 #include <ScannerLib/JsonParser.h>
 
 using PolygonMesh = pcl::PolygonMesh;
-void register_glfw_callbacks(window& app, glfw_state& app_state);
+//void register_glfw_callbacks(window& app, glfw_state& app_state);
 
 //Helper function for drawing pointcloud
-void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::points& points);
+//void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::points& points);
 
 // Helper function for dispaying time conveniently
-std::string pretty_time(std::chrono::nanoseconds duration);
+//std::string pretty_time(std::chrono::nanoseconds duration);
 // Helper function for rendering a seek bar
 //void draw_seek_bar(rs2::playback& playback, int* seek_pos, float2& location, float width);
 
@@ -94,14 +93,6 @@ class Scanner {
 
     //PCL ICP DEMO TEST VERSION
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr align_demo_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr targetCloud)
-    {
-       icp_demo_pcl(sourceCloud,targetCloud);
-   
-       *targetCloud= *targetCloud+*sourceCloud;
-
-        return targetCloud;
-    }
     //#############################################################################
     //Overloaded functions to view a Pointcloud in 3D
     //#############################################################################
