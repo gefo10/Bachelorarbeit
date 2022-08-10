@@ -30,6 +30,15 @@ using PolygonMesh = pcl::PolygonMesh;
 using PC_SIMPLE =pcl::PointCloud<pcl::PointXYZ>; 
 using PC_RGB =  pcl::PointCloud<pcl::PointXYZRGB>;
 
+using PointXYZ = pcl::PointXYZ;
+using PointXYZRGB = pcl::PointXYZRGB;
+
+using PointCloudXYZ = pcl::PointCloud<PointXYZ>;
+using PointCloudXYZPtr = PointCloudXYZ::Ptr;
+
+using PointCloudXYZRGB = pcl::PointCloud<PointXYZRGB>;
+using PointCloudXYZRGBPtr = PointCloudXYZRGB::Ptr;
+
 
 class Scanner {
   public:
@@ -154,29 +163,41 @@ class Scanner {
     //save a pointloud as PCD file
     //#####################################################
     template <typename PointT>
-    void save_pcd(std::string file_name,typename pcl::PointCloud<PointT>& frame)
+    void save_pcd(std::string file_name,typename pcl::PointCloud<PointT>::Ptr& frame)
     {
+        if(file_name.find(".pcd") == std::string::npos)
+            file_name += ".pcd";
         pcl::io::savePCDFileASCII(file_name.c_str(), frame);       
     }
     
+    template <typename PointT>
+    void save_pcd(const std::string file_name,std::vector<typename pcl::PointCloud<PointT>::Ptr>& frames)
+    {
+        for(int i =0 ; i < frames.size(); i++){
+            std::string file_name_final = file_name + "_" + std::to_string(i);
+            pcl::io::savePCDFileASCII(file_name_final.c_str(), frames[i]);       
+        }
+    }
+
+
 
     //#######################################################################
     
     //##########################################
     //Save mesh as obj/ply file format
     //###########################################
-    void save_obj(std::string file_name, PolygonMesh& mesh)
+    void save_obj(const std::string file_name, PolygonMesh& mesh)
     {
           pcl::io::saveOBJFile(file_name.c_str(),mesh);
     }
     
     template<typename PointT>
-    void save_ply(std::string file_name,typename pcl::PointCloud<PointT>& frame)
+    void save_ply(const std::string file_name,typename pcl::PointCloud<PointT>& frame)
     {
          pcl::io::savePLYFile(file_name.c_str(),frame);
     }
     
-    void save_ply(std::string file_name,PolygonMesh& mesh)
+    void save_ply(const std::string file_name,PolygonMesh& mesh)
     {
          pcl::io::savePLYFile(file_name.c_str(),mesh);
     }
@@ -188,7 +209,7 @@ class Scanner {
     //load a pointcloud from a PCD file
     //###################################################################################
     template <typename PointT>
-    void load(std::string filename,typename pcl::PointCloud<PointT>::Ptr& cloud)
+    void load_pcd(const std::string filename,typename pcl::PointCloud<PointT>::Ptr& cloud)
     {
         if (pcl::io::loadPCDFile<PointT> (filename, *cloud) == -1) //* load the file
         {
@@ -199,9 +220,12 @@ class Scanner {
     
     //Load PLY file 
     template<typename PointT>
-    typename pcl::PointCloud<PointT> load_PLY(std::string& filename, typename pcl::PointCloud<PointT>::Ptr cloud)
+    void load_ply(const std::string& filename, typename pcl::PointCloud<PointT>::Ptr cloud)
     {
-        return pcl_helpers::load_PLY(filename,cloud);
+          if(pcl::io::loadPLYFile<PointT> (filename, *cloud) == -1)
+          {
+              throw "Could't read file\n";
+          }
     }
     
 
@@ -234,12 +258,8 @@ class Scanner {
         pcl_helpers::filterX(cloud,min,max);
     }
     //#################################################################################
-    
-   
 
-   void runPipeline(); 
-  private:
-    //####################################################################################
+     //###################################################################################
     //helpers to convert pointclouds from pcl to std::vector<Point> (locally defined)
     //######################################################################################
     std::vector<Point> convert_pcl_points(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
@@ -275,6 +295,11 @@ class Scanner {
     std::vector<std::vector<Point*>> convert_pcl_points_ptr(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& cloud);
     //###################################################################################################################
 
+   
+   
+
+   void runPipeline(); 
+   private:
     float window_width;
     float window_height;
     std::string window_name;

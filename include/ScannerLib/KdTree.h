@@ -6,9 +6,10 @@
 #include <iostream>
 
 
- enum class ALLIGNMENT {
-        ALLIGN_X,ALLIGN_Y,ALLIGN_Z
-    };
+enum class ALLIGNMENT {
+       ALLIGN_X,ALLIGN_Y,ALLIGN_Z
+};
+
 
 struct Node {
         
@@ -49,7 +50,7 @@ public:
     KdTree() = delete;
     KdTree(std::vector<Point>& cloud);
     KdTree(std::vector<Point*>& cloud);
-   ~KdTree();
+    virtual ~KdTree();
     ALLIGNMENT getNextAllignment(ALLIGNMENT allign);
     //ALLIGNMENT getNextAllignment();
      
@@ -59,7 +60,7 @@ public:
     void build(std::vector<Point>& cloud, int current,size_t size);
     void build(std::vector<Point*>& cloud, int current,size_t size);
     
-    void search(Point& p,Point& result);
+    bool search(Point& p,Point& result,float upperThreshold=1.0f);
     void radiusSearch(Point& p, float searchRadius,Point& result);
     //void search(Point& p, Point& result);
     

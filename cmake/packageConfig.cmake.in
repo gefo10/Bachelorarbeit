@@ -1,0 +1,35 @@
+@PACKAGE_INIT@
+
+set(@PROJECT_NAME@_VERSION_MAJOR "@PROJECT_VERSION_MAJOR@")
+set(@PROJECT_NAME@_VERSION_MINOR "@PROJECT_VERSION_MINOR@")
+set(@PROJECT_NAME@_VERSION_PATCH "@PROJECT_VERSION_PATCH@")
+
+
+set(@PROJECT_NAME@_VERSION ${@PROJECT_NAME@_VERSION_MAJOR}.${@PROJECT_NAME@_VERSION_MINOR}.${@PROJECT_NAME@_VERSION_PATCH})
+
+
+set(@PROJECT_NAME@_EXTERNAL_LIBRARIES )
+
+if ((NOT DEFINED Eigen3_FOUND) OR (NOT ${Eigen3_FOUND}))
+        find_package(Eigen3 REQUIRED)
+        include_directories(${EIGEN3_INCLUDE_DIRS})
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES Eigen3::Eigen ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
+
+if ((NOT DEFINED PCL_FOUND) OR (NOT ${PCL_FOUND}))
+        find_package(PCL REQUIRED)
+        include_directories(${PCL_INCLUDE_DIRS})
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES Eigen3::Eigen ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
+if ((NOT DEFINED realsense2_FOUND) OR (NOT ${realsense2_FOUND}))
+        find_package(realsense2 REQUIRED)
+        include_directories(${realsense2_INCLUDE_DIR})
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES ${realsense2_LIBRARY} ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
+
+
+set_and_check(@PROJECT_NAME@_INCLUDE "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+set(@PROJECT_NAME@_LIBRARY ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+message("project include dir: ${@PROJECT_NAME@_INCLUDE}}"
+include("${@PROJECT_NAME@_INCLUDE}/cmake/${PROJECT_NAME}Targets.cmake")
+check_required_components(@PROJECT_NAME@)

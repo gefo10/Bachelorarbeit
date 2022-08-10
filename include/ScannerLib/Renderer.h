@@ -20,8 +20,11 @@ public:
     void Draw();
     void Draw(std::string filename);
     void Draw(Mesh mesh);
+    void DrawLine(const Point& p1, const Point& p2);
 
 private:
     Window* _window;
     glm::mat4 model;
+    std::vector<std::pair<VertexArray,unsigned int>> lines_vaos;
 };
+

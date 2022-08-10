@@ -4,8 +4,9 @@
 #include <ScannerLib/Shader.h>
 #include <ScannerLib/IndexBuffer.h>
 #include <pcl/io/pcd_io.h>
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/string_cast.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <utility>
 
 
 
@@ -274,13 +275,58 @@ void Renderer::DrawPoints(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
         
         mvp = _window->GetProjectionMatrix() * _window->GetCamera().getViewMatrix() * model;
 
+
+
         vao.Bind();
         s.SetUniform4Mat("MVP",mvp);
 
         glDrawArrays(GL_POINTS,0,points.size());
+        
         _window->swapBuffers();
         lastTime = currentTime;
     }
    
+    lines_vaos.clear();
 }
 
+
+void Renderer::DrawLine(const Point& p1, const Point& p2)
+{
+
+    VertexArray vao;
+    std::vector<Point> vertices {p1, p2};
+
+  
+    Shader line_shader(Point_Vertex,Point_Fragment);
+    line_shader.Bind();
+
+    VertexBuffer vb(&vertices[0],2*sizeof(Point));
+
+    VertexBufferLayout layout;
+    layout.Push(3,false,VertexBufferLayout::FLOAT);
+    layout.Push(3,false,VertexBufferLayout::FLOAT);
+
+    vao.AddBuffer(vb,layout);
+    
+    this->lines_vaos.push_back({vao,vertices.size()});
+
+//    while(!_window->shouldClose()){
+//
+//        _window->clearScreen();
+//        _window->showFPS();
+//        double currentTime = glfwGetTime();
+//        double deltaTime = currentTime- lastTime;
+//        _window->pollEvents();
+//        _window->Update(deltaTime);
+//
+//        mvp = _window->GetProjectionMatrix() * _window->GetCamera().getViewMatrix() * model;
+//
+//        vao.Bind();
+//        s.SetUniform4Mat("MVP",mvp);
+//
+//        glDrawArrays(GL_LINES,0,points.size());
+//        _window->swapBuffers();
+//        lastTime = currentTime;
+//    }
+//
+}

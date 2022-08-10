@@ -500,6 +500,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
         w.clearScreen();
 
         Renderer re(w);
+        re.DrawLine(Point{-0.75f,0.f,0.f}, Point{0.77f,0.f,0.f});
         re.DrawPoints(points);
 
 }
@@ -532,6 +533,8 @@ void Scanner::view(std::vector<Point>& cloud)
     w.clearScreen();
 
     Renderer re(w);
+    
+    
     re.DrawPoints(cloud);
 }
 
@@ -633,14 +636,21 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceClou
 
 std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
 {
-    pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
-    pcl_helpers::statistical_removal(targetCloud,100,0.8f);
+    //pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
+    //pcl_helpers::statistical_removal(targetCloud,100,0.8f);
 
     
 
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
+
     test_cloud_random_shift(dynamicCloud);
+    auto quick_look = dynamicCloud;
+    for(int i = 0; i < staticCloud.size(); i++) {
+        quick_look.push_back(staticCloud[i]);
+    }
+    this->view(quick_look);
+
 
     //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
 

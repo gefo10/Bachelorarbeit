@@ -9,10 +9,6 @@ KdTree::KdTree(std::vector<Point>& cloud)
 {
     if(cloud.empty())
         throw std::logic_error("Point Cloud is empty! KdTree can not be constructed");
-    
-    //std::vector<Point> points;
-    //for(int i =0; i < cloud.size(); i++)
-    //    points.push_back(*cloud[i]);
 
     _root  = new Node(cloud[0],ALLIGNMENT::ALLIGN_X);
     build(cloud,1,cloud.size());
@@ -22,10 +18,6 @@ KdTree::KdTree(std::vector<Point*>& cloud)
     if(cloud.empty())
         throw std::logic_error("Point Cloud is empty! KdTree can not be constructed");
     
-    //std::vector<Point> points;
-    //for(int i =0; i < cloud.size(); i++)
-    //    points.push_back(*cloud[i]);
-
     _root  = new Node(*cloud[0],ALLIGNMENT::ALLIGN_X);
     build(cloud,1,cloud.size());
 }
@@ -122,7 +114,8 @@ void KdTree::insertNode(Node& node,Point& new_point)
 
 }
 
-void KdTree::search(Point& p, Point& result) 
+
+bool KdTree::search(Point& p, Point& result,float upperThreshold) 
 {
     using namespace std;
 
@@ -130,13 +123,19 @@ void KdTree::search(Point& p, Point& result)
 
     result = searchNearestChild(*_root, p);
 
-  //std::cout << "SEARCH NEAREST CHILD DONE "<< std::endl << std::flush;
+ // std::cout << "SEARCH NEAREST CHILD DONE "<< std::endl << std::flush;
     float radius = sqrt(pow(p.x - result.x, 2.0) + pow(p.y - result.y, 2.0) + pow(p.z - result.z, 2.0));
-
-  //std::cout << "RADIUS CALCULATES " << radius<< std::endl << std::flush;
+ // std::cout << "RADIUS CALCULATED " << radius<< std::endl << std::flush;
     radiusSearch(p,radius,result);
+    
+    if (radius > upperThreshold){
+        result = {0.f,0.f,.0f};
+        return false;
+    }
 
-  //std::cout << "SEARCH NEAREST CHILD "<< std::endl << std::flush;
+
+    return true;
+ //std::cout << "SEARCH DONE "<< std::endl << std::flush;
 }
 void KdTree::radiusSearch(Point& p,float searchRadius, Point& result)
 {
@@ -145,9 +144,9 @@ void KdTree::radiusSearch(Point& p,float searchRadius, Point& result)
 void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result)
 {
     using namespace std;
-
+    //std::cout << "search radius: " <<  searchRadius << std::flush << std::endl;
     if(node.current == nullptr) return;
-    if (node.left == nullptr && node.right == nullptr) //then its a leaf
+    else if (node.left == nullptr && node.right == nullptr) //then its a leaf
     {
 
     //    std::cout << "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" << searchRadius << std::endl << std::flush;
@@ -155,9 +154,6 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
         if (distance < searchRadius)
         {
             searchRadius = distance;
-            //result.x = node.current->x;
-            //result.y = node.current->y;
-            //result.z = node.current->z;
             result = *(node.current);
         }   
     }   
@@ -192,10 +188,7 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
             if (distance < searchRadius)
             {
                 searchRadius = distance;
-                result.x = node.current->x;
-                result.y = node.current->y;
-                result.z = node.current->z;
-               // result = *node.current;
+                result = *node.current;
             } 
 
 
@@ -218,10 +211,7 @@ void KdTree::radiusSearch(Node& node, Point& p,float& searchRadius,Point& result
                 if (distance < searchRadius)
                 {
                     searchRadius = distance;
-                    result.x = node.current->x;
-                    result.y = node.current->y;
-                    result.z = node.current->z;
-                    //result = *(node.current);
+                    result = *(node.current);
                 } 
                 
                 if(node.right != nullptr)

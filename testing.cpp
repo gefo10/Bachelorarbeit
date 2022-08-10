@@ -21,6 +21,7 @@
 //#include <pcl/io/obj_io.h>
 //#include <pcl/search/kdtree.h> // for KdTree
 //#include <pcl/surface/mls.h>
+#include <cmath>
 #include <thread>
 #include <ScannerLib/Scanner.h>
 #include <GLFW/glfw3.h>
@@ -28,21 +29,184 @@
 //#include <CGAL/Polyhedron_3.h>
 #include <ScannerLib/KdTree.h>
 #include <ScannerLib/Point.h>
+void testKdTree()
+{
+
+    std::vector<Point> cloud{
+
+    Point {0.1,0.2,0.5},
+    Point {0.25,0.2,0.5},
+    Point {0.6,0.2,0.1},
+    Point {0.51,0.142,0.1},
+    Point {0.385,0.125,0.897},
+    Point {0.635,0.654,0.5223},
+    Point {0.7689,0.5654,0.5},
+    Point {0.1,0.2,0.34432},
+    Point {0.53253,0.889,0.123},
+    Point {0.61,0.2101,0.09}
+    };
+
+    KdTree* tree = new KdTree(cloud);
+
+    Point res;
+    Point to_search{0.623,0.5,0.2};
+    tree->search(to_search,res);
+
+    std::cout << "x: " << res.x <<"  y:" << res.y << "  z:" << res.z << std::endl;
+    delete tree;
+}
+
+
+void testICP() 
+{
+ 	// std::string model("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+   
+   Scanner sc("../config/defaultConfig.json");
+   sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud);
+   sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud2);
+   for(int i = 0; i < cloud2->points.size(); i++)
+   {
+       cloud2->points[i].r = 255;
+       cloud2->points[i].g = 0;
+       cloud2->points[i].b = 0;
+   }
+  for(int i = 0; i < cloud->points.size(); i++)
+   {
+       cloud->points[i].r = 0;
+       cloud->points[i].g = 255;
+       cloud->points[i].b = 0;
+   }
+
+
+   auto aligned_cloud = sc.align_ICP(cloud,cloud2);
+
+   sc.view(aligned_cloud);
+
+   // 
+   // sc.load<pcl::PointXYZRGB>("rec2_plane.pcd",cloud);
+   // sc.load<pcl::PointXYZRGB>("rec2_obj.pcd",cloud2);
+ 
+}
+void testRansac2() 
+{
+   //std::string model("../raptor-model/source/raptor.ply");
+
+
+   //std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
+
+   // std::string model("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    Scanner sc("../config/defaultConfig.json");
+
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
+    //sc.load<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
+     sc.view(cloud);
+    //sc.view(cloud2);
+
+//sc.view(cloud);
+
+int t = std::log(1-0.99) / std::log(1-std::pow((1-0.3),3));
+std::cout << "T = " << t << std::endl;
+auto pair = pcl_helpers::RANSAC_SegmentPlane<PointXYZRGB>(cloud,10000,0.01f);
+*cloud = *pair.second;
+
+sc.view(cloud);
+
+}
+
+void testRansacPCL() 
+{
+   //std::string model("../raptor-model/source/raptor.ply");
+
+
+   //std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
+
+   // std::string model("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    Scanner sc("../config/defaultConfig.json");
+
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
+    //sc.load<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
+     sc.view(cloud);
+    //sc.view(cloud2);
+
+//sc.view(cloud);
+pcl_helpers::ransac_pcl<pcl::PointXYZRGB>(cloud,0.001f);
+
+
+sc.view(cloud);
+
+}
+void testPlaneDetection() 
+{
+   //std::string model("../raptor-model/source/raptor.ply");
+
+
+   //std::string model("../elephant-model/elephant-skeleton/source/elephant/elephant.ply");
+
+   // std::string model("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    Scanner sc("../config/defaultConfig.json");
+
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
+    sc.view(cloud2); 
+    sc.view(cloud);
+    //sc.view(cloud2);
+
+//sc.view(cloud);
+ sc.filterZ<PointXYZRGB>(cloud2,0.01f,1.0f);
+ sc.filterZ<PointXYZRGB>(cloud,0.01f,1.0f);
+ auto seg = pcl_helpers::plane_detection<pcl::PointXYZRGB>(cloud,0.1f,5000);
+
+ auto plane = seg.first;
+ sc.view(plane);
+ //sc.filterX<PointXYZRGB>(cloud2,-0.5f,0.4f);
+auto seg2 = pcl_helpers::plane_detection<pcl::PointXYZRGB>(cloud2,0.1f,5000);
+sc.view(seg2.first);
+auto result = seg2.first;
+sc.filterZ<PointXYZRGB>(result,0.94f,1.f);
+ //sc.filterX<PointXYZRGB>(result,-0.15f,0.06f);
+auto back = result;
+
+
+sc.ransac_SVD<pcl::PointXYZRGB>(result,plane);
+sc.view(result);
+//auto aligned =sc.align_ICP(result,back);
 
 
 
-//void testICP() 
+
+//auto converted_result = sc.convert_pcl_points(result);
+//KdTree* tree = new KdTree(converted_result);
+//for(int i =0 ; i< cloud2->points.size(); i++)
 //{
-// 	// std::string model("../spartan_recap2.ply");
-//   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-//   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 //
-//    Scanner sc;
-//    
-//    sc.load<pcl::PointXYZRGB>("rec2_plane.pcd",cloud);
-//    sc.load<pcl::PointXYZRGB>("rec2_obj.pcd",cloud2);
-// 
+//    if (i % 1000 == 0 ) std::cout << i << "/" << cloud2->points.size() << std::endl;
+//    Point r;
+//    Point p {cloud2->points[i].x,cloud2->points[i].y,cloud2->points[i].z};
+//
+//
+//    auto found = tree->search(p,r,0.0005f);
+//    if(!found){
+//        cloud2->points.erase(cloud2->points.begin() + i);
+//        i--;
+//    }
 //}
+//
+//sc.view(aligned);
+//delete tree;
+
+}
 void testRANSAC() 
 {
     
@@ -57,35 +221,9 @@ void testRANSAC()
 
     Scanner sc("../config/defaultConfig.json");
     
-    sc.load<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
-    sc.load<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
-  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr = pcl_helpers::load_PLY(model, cloud);
-  //pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
-
-
-
-// for(int i = 0 ;i < cloud->points.size(); i++)
-//  {
-//      cloud->points[i].r = 255;
-//      cloud->points[i].g = 0;
-//      cloud->points[i].b = 0;
-//  }
-//
-//
-//  //std::cout << "1ST DONE "<< std::endl << std::flush;
-//  for(int i = 0 ;i < cloud2->points.size(); i++)
-//  {
-//      cloud2->points[i].r = 0;
-//      cloud2->points[i].g = 0;
-//      cloud2->points[i].b = 255;
-//  }
-//  //std::cout << "2ST DONE "<< std::endl << std::flush;
-  // 
-  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr2 = pcl_helpers::load_PLY(model2, cloud2);
-   // pcl::PolygonMesh poly;
-    //sc.load_obj("mesh.obj");
-
-    sc.view(cloud);
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
+    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
+     sc.view(cloud);
     sc.view(cloud2);
  
 sc.view(cloud);
@@ -97,7 +235,12 @@ sc.view(cloud2);
 }
 
 int main(int argc, char** argv) {
-   	testRANSAC();
+   	//testRANSAC();
+    //testKdTree();
+    //testRansac2();
+    //testICP();
+   // testRansacPCL();
+    testPlaneDetection();
 	return EXIT_SUCCESS;
 }
 
