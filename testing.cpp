@@ -119,6 +119,23 @@ sc.view(cloud);
 
 }
 
+
+void testVectorResize() 
+{
+	std::vector<int> v {1,2,3,4,5,6,7,8,9,10};
+
+	std::vector<int> indx {2,5,7,8}; //delete 3,6,8,9
+
+	int count = 0;
+	for(auto i : indx)
+	{
+		v.erase(v.begin() + i + count);
+		count--;
+	}
+
+	for(auto val : v)
+		std::cout << val << std::endl;
+}
 void testRansacPCL() 
 {
    //std::string model("../raptor-model/source/raptor.ply");
@@ -157,8 +174,8 @@ void testPlaneDetection()
 
     Scanner sc("../config/defaultConfig.json");
 
-    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_plane.pcd",cloud);
-    sc.load_pcd<pcl::PointXYZRGB>("../data/rec2_obj.pcd",cloud2);
+    sc.load_pcd<pcl::PointXYZRGB>("plane_only1.pcd",cloud);
+    sc.load_pcd<pcl::PointXYZRGB>("plane_with_obj1.pcd",cloud2);
     sc.view(cloud2); 
     sc.view(cloud);
     //sc.view(cloud2);
@@ -169,15 +186,18 @@ void testPlaneDetection()
  auto seg = pcl_helpers::plane_detection<pcl::PointXYZRGB>(cloud,0.1f,5000);
 
  auto plane = seg.first;
- sc.view(plane);
+// sc.view(plane);
  //sc.filterX<PointXYZRGB>(cloud2,-0.5f,0.4f);
 auto seg2 = pcl_helpers::plane_detection<pcl::PointXYZRGB>(cloud2,0.1f,5000);
 sc.view(seg2.first);
 auto result = seg2.first;
-sc.filterZ<PointXYZRGB>(result,0.94f,1.f);
+//sc.filterZ<PointXYZRGB>(result,0.94f,1.f);
  //sc.filterX<PointXYZRGB>(result,-0.15f,0.06f);
 auto back = result;
 
+
+seg2 = pcl_helpers::plane_detection<pcl::PointXYZRGB>(result,1e-2f,5000);
+result = seg2.second;
 
 sc.ransac_SVD<pcl::PointXYZRGB>(result,plane);
 sc.view(result);
@@ -240,6 +260,7 @@ int main(int argc, char** argv) {
     //testRansac2();
     //testICP();
    // testRansacPCL();
+	testVectorResize();
     testPlaneDetection();
 	return EXIT_SUCCESS;
 }

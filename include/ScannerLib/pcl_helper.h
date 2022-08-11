@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include <pcl/io/ply_io.h>
 #include <ScannerLib/Point.h>
+#include <ScannerLib/KdTree.h>
 #include <cmath>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
@@ -99,83 +100,6 @@ namespace pcl_helpers {
      return mean;
 
     } 
-
-
-    //not working
-    template<typename PointT>
-    std::pair<typename pcl::PointCloud<PointT>::Ptr,typename pcl::PointCloud<PointT>::Ptr> ransac_impl(typename pcl::PointCloud<PointT>::Ptr& cloud,int maxIterations,float distanceThreshold)
-    {
-        std::unordered_set<int> inliersResult;
-        srand(time(NULL));
-
-        while(maxIterations--)
-        {
-            std::unordered_set<int> inliers;
-            while (inliers.size() < 3)
-                inliers.insert( rand() % cloud->points.size() );
-
-            float x1,y1,z1,x2,y2,z2,x3,y3,z3;
-            auto indx_ptr = inliers.begin();
-
-            x1 = cloud->points[*indx_ptr].x;
-            y1 = cloud->points[*indx_ptr].y;
-            z1 = cloud->points[*indx_ptr].z;
-
-            ++indx_ptr;
-
-            x2 = cloud->points[*indx_ptr].x;
-            y2 = cloud->points[*indx_ptr].y;
-            z2 = cloud->points[*indx_ptr].z;
-
-            ++indx_ptr;
-
-            x3 = cloud->points[*indx_ptr].x;
-            y3 = cloud->points[*indx_ptr].y;
-            z3 = cloud->points[*indx_ptr].z;
-
-            float a = (y2 - y1) * (z3-z1) - (z2-z1) * (y3-y1);
-            float b = (z2-z1) * (x3-x1) - (x2-x1) * (z3-z1);
-            float c = (x2-x1) * (y3-y1) - (y2-y1) * (x3-x1);
-            float d = - (a * x1 + b * y1 + c * z1);
-
-            for(int i = 0; i < cloud->points.size(); i++) {
-                if (inliers.count(i) > 0)
-                    continue;
-
-                PointT point = cloud->points[i];
-                float x4 = point.x;
-                float y4 = point.y;
-                float z4 = point.z;
-
-                float dis = fabs(a*x4 + b*y4 + c*z4 + d)/sqrt(a*a + b*b + c*c);
-
-                if (dis <= distanceThreshold)
-                    inliers.insert(i);
-            }
-
-            if (inliers.size() > inliersResult.size())
-                inliersResult = inliers;
-
-        }
-
-        typename pcl::PointCloud<PointT>::Ptr cloudInliers (new pcl::PointCloud<PointT>());
-        typename pcl::PointCloud<PointT>::Ptr cloudOutliers (new pcl::PointCloud<PointT>());
-
-        for(int i = 0 ; i < cloud->points.size(); i++){
-
-            PointT point = cloud->points[i];
-            if (inliersResult.count(i))
-                cloudInliers->points.push_back( point );
-            else
-                cloudOutliers->points.push_back( point );
-        }
-
-        std::pair<typename pcl::PointCloud<PointT>::Ptr,typename pcl::PointCloud<PointT>::Ptr> segResult = std::make_pair(cloudInliers,cloudOutliers);
-
-        return segResult;
-    }
-
-
 
 template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> RANSAC_SegmentPlane(
@@ -284,7 +208,7 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 // 1.arg:  detected plane (inliers)
 // 2.arg:  bool == True if pointcloud is empty
 template<typename PointT>
-std::pair<typename pcl::PointCloud<PointT>::Ptr, bool> plane_detection(
+std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> plane_detection(
         typename pcl::PointCloud<PointT>::Ptr plane_scan,float distanceThreshold,int max_iterations)
 {
     pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
@@ -309,14 +233,22 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, bool> plane_detection(
         PCL_ERROR("Could not estimate a planar model for the given dataset.\n");
         typename pcl::PointCloud<PointT>::Ptr cloud(new typename pcl::PointCloud<PointT>);
 
-        return std::make_pair(cloud,true);
+        return std::make_pair(cloud,cloud);
     }
 
     typename pcl::PointCloud<PointT>::Ptr result(new typename pcl::PointCloud<PointT>);
     for(const auto& indx: inliers->indices)
         result->points.push_back(plane_scan->points[indx]);
 
-    return {result,false};
+    int count = 0;
+    for(const auto& indx: inliers->indices)
+    {
+	plane_scan->points.erase(plane_scan->points.begin() + indx + count);
+	count--;
+    }
+
+
+    return {result,plane_scan};
 }
 
 template<typename PointT>
@@ -369,12 +301,6 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
 
     auto segmentation_pair = plane_detection<PointT>(plane,0.01f,5000);
 
-    // check if no plane detected
-    if(segmentation_pair.second)
-    {
-        std::cout << "No plane detected!" << std::endl;
-        return;
-    }
 
     *plane = *segmentation_pair.first;
     MatrixXf m (plane->points.size(),3);
@@ -402,6 +328,7 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
 
     PointT mean = computeCloudMean<PointT>(plane);
 
+	
     Vector3f mean_eigen(mean.x,mean.y,mean.z);
     // Vector3f x(sig_values(0,0)+mean.x,mean.y,mean.z);
     // Vector3f y(mean.x,sig_values(1,0)+mean.y,mean.z);
@@ -412,15 +339,18 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     //Vector3f n = (x-mean_eigen).cross((y-mean_eigen));
     Vector3f n = -z;
     n.normalize();
+
+    
+
     PointT normal;
     normal.x = n(0);
     normal.y = n(1);
     normal.z = n(2);
-    normal.r = 255;
-    normal.g = 0;
+    normal.r = 0;
+    normal.g = 255;
     normal.b = 0;
     
-
+    using namespace std;
 
 
     //chose a random point from the plane to filter the source point cloud
@@ -449,14 +379,13 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
     cloud->height = 1;
     cloud->width = cloud->points.size();
-    distanceThreshold = 0.1;
+    distanceThreshold = 1e-2;
     cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(),       
           [&n,&distanceThreshold,&mean_eigen,&p_plane_eigen,&cloud](auto& x) { 
              
                 Vector3f p_cloud_eigen(x.x, x.y, x.z);
-                float distance = (p_cloud_eigen-mean_eigen).dot(n);
-                float dis2 = (p_cloud_eigen - p_plane_eigen).dot(n);
-                if (distance <= distanceThreshold || dis2 <= distanceThreshold)
+                float distance = (p_cloud_eigen-mean_eigen).dot(n-mean_eigen);
+                if (distance <= distanceThreshold )
                     cloud->width -= 1;
 
                 return distance <= distanceThreshold;
@@ -471,10 +400,6 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     origin.b =0;
     origin.g =0;
     //cloud->points.push_back(p_plane);
-
-    cloud->points.push_back(normal);
-    cloud->points.push_back(origin);
-    cloud->points.push_back(mean);
 
     //for(unsigned int i = 0; i< cloud->points.size(); i++)
     //{
@@ -492,13 +417,13 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
 
   //  cloud->points.push_back(p_plane);
 
-   mean.r = 255; mean.g = 0; mean.b = 0;
+   mean.r = 0; mean.g = 255; mean.b = 0;
    cloud->points.push_back(mean);
    cloud->points.push_back(normal);
-   for(auto& p : plane->points){
-       p.r = 0; p.g = 0; p.b = 255;
-       cloud->points.push_back(p);
-   }
+   //for(auto& p : plane->points){
+   //    p.r = 0; p.g = 0; p.b = 255;
+   //    cloud->points.push_back(p);
+   //}
 
 
 
