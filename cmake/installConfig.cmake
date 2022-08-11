@@ -33,7 +33,7 @@ configure_package_config_file("cmake/packageConfig.cmake.in" "${PROJECT_NAME}Con
 configure_file("cmake/cmakeUninstall.cmake" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
 configure_file("cmake/package.pc.in" "${PROJECT_NAME}.pc" @ONLY)
 
-install(TARGETS ${PROJECT_TARGET}
+install(TARGETS ${PROJECT_TARGET} glm glfw
         EXPORT ${PROJECT_NAME}Targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

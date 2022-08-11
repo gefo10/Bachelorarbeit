@@ -8,7 +8,7 @@ set(PROJECT_INCLUDE_PREFIX ${PROJECT_NAME})
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 if (WIN32)
     set(EXTERNAL_DEPENDENCIES wsock32 ws2_32 ${EXTERNAL_DEPENDENCIES})
     set(EXTERNAL_DEPENDENCIES_GENERAL wsock32 ws2dd_32 ${EXTERNAL_DEPENDENCIES_GENERAL})
@@ -23,13 +23,13 @@ find_package(AndreiUtils REQUIRED)
 find_package(Eigen3  REQUIRED)
 find_package(PCL REQUIRED)
 find_package(realsense2 REQUIRED)
-
 include_directories(${realsense2_INCLUDE_DIR})
 include_directories( ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLM_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIRS})
+include_directories(${PCL_INCLUDE_DIRS})
 
 add_subdirectory(external_dependencies)
-set(EXTERNAL_DEPENDENCIES glfw ${GLUT_LIBRARY} ${GLEW_LIBRRARIES} GLEW::GLEW Eigen3::Eigen)
+set(EXTERNAL_DEPENDENCIES glfw glm ${GLUT_LIBRARY} ${GLEW_LIBRRARIES} GLEW::GLEW Eigen3::Eigen)
 set(EXTERNAL_DEPENDENCIES ${realsense2_LIBRARY} ${EXTERNAL_DEPENDENCIES})
 #set(EXTERNAL_DEPENDENCIES ${OPENGL_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
 set(EXTERNAL_DEPENDENCIES ${PCL_LIBRARIES} ${EXTERNAL_DEPENDENCIES})
@@ -61,7 +61,7 @@ target_include_directories(scanner
 
 message(${EXTERNAL_DEPENDENCIES})
 
-set(EXTERNAL_DEPENDENCIES scanner ${EXTERNAL_DEPENDENCIES})
+#set(EXTERNAL_DEPENDENCIES scanner ${EXTERNAL_DEPENDENCIES})
 message("EXTRN LIBS: ${EXTERNAL_DEPENDENCIES}")
 add_executable(main testing.cpp)
 target_link_libraries(main scanner)

@@ -129,7 +129,9 @@ bool KdTree::search(Point& p, Point& result,float upperThreshold)
     radiusSearch(p,radius,result);
     
     if (radius > upperThreshold){
-        result = {0.f,0.f,.0f};
+        result.x = 0.f;
+        result.y = 0.f;
+        result.z = 0.f;
         return false;
     }
 

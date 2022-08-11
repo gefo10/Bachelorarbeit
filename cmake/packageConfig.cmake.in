@@ -31,10 +31,9 @@ if ((NOT DEFINED realsense2_FOUND) OR (NOT ${realsense2_FOUND}))
         set(@PROJECT_NAME@_EXTERNAL_LIBRARIES ${realsense2_LIBRARY} ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
 endif ()
 if ((NOT DEFINED glm_FOUND) OR (NOT ${glm_FOUND}))
-        set(glm_DIR "${CMAKE_INSTALL_PREFIX}/lib/cmake/glm") # if necessary
+	set(glm_DIR "${CMAKE_INSTALL_PREFIX}/include/glm") # if necessary
         find_package(glm REQUIRED)
-        include_directories(glm)
-
+	include_directories(glm_DIR)
         set(@PROJECT_NAME@_EXTERNAL_LIBRARIES glm::glm ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
 endif ()
 if ((NOT DEFINED glfw3_FOUND) OR (NOT ${glfw3_FOUND}))
