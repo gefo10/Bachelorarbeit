@@ -10,6 +10,9 @@ set(@PROJECT_NAME@_VERSION ${@PROJECT_NAME@_VERSION_MAJOR}.${@PROJECT_NAME@_VERS
 
 set(@PROJECT_NAME@_EXTERNAL_LIBRARIES )
 
+set_and_check(@PROJECT_NAME@_INCLUDE "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+
 if ((NOT DEFINED Eigen3_FOUND) OR (NOT ${Eigen3_FOUND}))
         find_package(Eigen3 REQUIRED)
         include_directories(${EIGEN3_INCLUDE_DIRS})
@@ -19,17 +22,48 @@ endif ()
 if ((NOT DEFINED PCL_FOUND) OR (NOT ${PCL_FOUND}))
         find_package(PCL REQUIRED)
         include_directories(${PCL_INCLUDE_DIRS})
-        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES Eigen3::Eigen ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+        
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES ${PCL_LIBRARIES} ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
 endif ()
 if ((NOT DEFINED realsense2_FOUND) OR (NOT ${realsense2_FOUND}))
         find_package(realsense2 REQUIRED)
         include_directories(${realsense2_INCLUDE_DIR})
         set(@PROJECT_NAME@_EXTERNAL_LIBRARIES ${realsense2_LIBRARY} ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
 endif ()
+if ((NOT DEFINED glm_FOUND) OR (NOT ${glm_FOUND}))
+        set(glm_DIR "${CMAKE_INSTALL_PREFIX}/lib/cmake/glm") # if necessary
+        find_package(glm REQUIRED)
+        include_directories(glm)
+
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES glm::glm ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
+if ((NOT DEFINED glfw3_FOUND) OR (NOT ${glfw3_FOUND}))
+    #set(glfw_DIR 
+        find_package(glfw3 REQUIRED)
+        #find_package(OpenGL REQUIRED)#include_directories( ${OPENGL_INCLUDE_DIRS} 
+
+        #include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRIS})
+        #set(@PROJECT_NAME@_EXTERNAL_LIBRARIES glfw OpenGL::GL ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES glfw ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
+
+if ((NOT DEFINED AndreiUtils_FOUND) OR (NOT ${AndreiUtils_FOUND}))
+        find_package(AndreiUtils REQUIRED)
+        set(@PROJECT_NAME@_EXTERNAL_LIBRARIES ${AndreiUtils_LIBRARY} ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+endif ()
 
 
-set_and_check(@PROJECT_NAME@_INCLUDE "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
-set(@PROJECT_NAME@_LIBRARY ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
-message("project include dir: ${@PROJECT_NAME@_INCLUDE}}"
-include("${@PROJECT_NAME@_INCLUDE}/cmake/${PROJECT_NAME}Targets.cmake")
+set(@PROJECT_NAME@_LIBS ${@PROJECT_NAME@_EXTERNAL_LIBRARIES})
+message("ext libs: ${@PROJECT_NAME@_EXTERNAL_LIBRARIES}")
+#set(@PROJECT_NAME@_LIBRARY @PROJECT_NAME@::@PROJECT_NAME@)
+
+message("INCLUDE DIR SCANNERLIB: ${@PROJECT_NAME@_INCLUDE}")
+#include_directories(${@PROJECT_NAME@_INCLUDE})
+
+message("project include dir: ${@PROJECT_NAME@_INCLUDE}")
+#include("${@PROJECT_NAME@_INCLUDE}/cmake/@PROJECT_NAME@Targets.cmake")
+message("CURR LIST: ${CMAKE_CURRENT_LIST_DIR}")
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 check_required_components(@PROJECT_NAME@)
+
+message("PACKAGES FOUND: PCL ${PCL_FOUND} EIGEN ${Eigen3_FOUND} GLM ${glm_FOUND} GLFW ${glfw3_FOUND} AndreiUtils ${AndreiUtils_FOUND}")

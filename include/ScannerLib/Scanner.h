@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <ScannerLib/openGLPointCloud.hpp>
 
+#include <ScannerLib/JsonParser.h>
 //#include <pcl/point_types.h>
 //#include <pcl/point_cloud.h>
 #include <vector>
@@ -13,7 +14,6 @@
 //#include <ScannerLib/Window.h>
 #include <ScannerLib/Renderer.h>
 //#include <pcl/PolygonMesh.h>
-#include <ScannerLib/JsonParser.h>
 
 using PolygonMesh = pcl::PolygonMesh;
 //void register_glfw_callbacks(window& app, glfw_state& app_state);

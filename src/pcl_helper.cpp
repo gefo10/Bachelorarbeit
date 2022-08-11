@@ -17,7 +17,7 @@
 //#include <pcl/features/normal_3d.h>
 //#include <pcl/surface/gp3.h>
 //#include <chrono>
-#include <pcl/io/vtk_io.h>
+//#include <pcl/io/vtk_io.h>
 //#include <pcl/io/obj_io.h>
 #include <pcl/search/kdtree.h> // for KdTree
 #include <pcl/surface/mls.h>

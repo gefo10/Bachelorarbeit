@@ -449,7 +449,7 @@ void RANSAC_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointC
     Vector3f p_plane_eigen(p_plane.x, p_plane.y, p_plane.z);
     cloud->height = 1;
     cloud->width = cloud->points.size();
-    distanceThreshold = 1e-5;
+    distanceThreshold = 0.1;
     cloud->points.erase(std::remove_if(cloud->points.begin(),cloud->points.end(),       
           [&n,&distanceThreshold,&mean_eigen,&p_plane_eigen,&cloud](auto& x) { 
              

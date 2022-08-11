@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <string>
 
 JsonParser::JsonParser(std::string filename)
     :window_width(1280),
