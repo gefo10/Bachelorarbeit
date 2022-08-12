@@ -9,7 +9,7 @@
 #include <ScannerLib/Scanner.h>
 //#include "ICP.h"
 
-PC_SIMPLE::Ptr Scanner::capture_FrameXYZ(bool show) try
+PointCloudXYZPtr Scanner::capture_FrameXYZ(bool show) try
 {
     window app(window_width,window_height, window_name.c_str());            
     glfw_state app_state;
@@ -37,7 +37,7 @@ PC_SIMPLE::Ptr Scanner::capture_FrameXYZ(bool show) try
     //Generate the pointcloud and texture mappings
     points = pc.calculate(depth);
 
-    PC_SIMPLE::Ptr pcl_points = pcl_helpers::pc_toPCL(points);
+    PointCloudXYZPtr pcl_points = pcl_helpers::pc_toPCL(points);
     
     while(app && show){
         draw_pointcloud(app.width(),app.height(),app_state,points);
@@ -57,7 +57,7 @@ PC_SIMPLE::Ptr Scanner::capture_FrameXYZ(bool show) try
 
 
 
-std::vector<PC_RGB::Ptr> Scanner::capture_FramesXYZRGB(bool show,int count) try
+std::vector<PointCloudXYZRGBPtr> Scanner::capture_FramesXYZRGB(bool show,int count) try
 {
     window app(window_width,window_height, window_name.c_str());
     glfw_state app_state;
@@ -111,7 +111,7 @@ std::vector<PC_RGB::Ptr> Scanner::capture_FramesXYZRGB(bool show,int count) try
         auto frames = pipe.wait_for_frames(); //Drop several frames for auto-exposure
     }
     
-    std::vector<PC_RGB::Ptr> pointcloud_frames;
+    std::vector<PointCloudXYZRGBPtr> pointcloud_frames;
 
     while(app && count){
 
@@ -123,7 +123,7 @@ std::vector<PC_RGB::Ptr> Scanner::capture_FramesXYZRGB(bool show,int count) try
         points = pc.calculate(depth);
     
         //Convert generated Point Cloud to PCL Formatting
-        PC_RGB::Ptr pcl_points = pcl_helpers::pcRGB_toPCL(points,color);
+        PointCloudXYZRGBPtr pcl_points = pcl_helpers::pcRGB_toPCL(points,color);
 
         if(show)
             draw_pointcloud_pcl(app.width(),app.height(),app_state,pcl_points);
@@ -136,19 +136,19 @@ std::vector<PC_RGB::Ptr> Scanner::capture_FramesXYZRGB(bool show,int count) try
 } catch(const rs2::error& e)
 {
     std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
-    return std::vector<PC_RGB::Ptr>();
+    return std::vector<PointCloudXYZRGBPtr>();
 
 } catch(const std::exception& e)
 {
     std::cerr << e.what() << std::endl;
-    return std::vector<PC_RGB::Ptr>();
+    return std::vector<PointCloudXYZRGBPtr>();
 }
 
 
 
 
 
-std::vector<PC_SIMPLE> Scanner::capture_FramesXYZ(bool show,int count) try
+std::vector<PointCloudXYZPtr> Scanner::capture_FramesXYZ(bool show,int count) try
 {
     window app(window_width,window_height, window_name.c_str());            
     glfw_state app_state;
@@ -169,7 +169,7 @@ std::vector<PC_SIMPLE> Scanner::capture_FramesXYZ(bool show,int count) try
         auto frames = pipe.wait_for_frames(); //Drop several frames for auto-exposure
     }
     
-    std::vector<PC_SIMPLE> pointcloud_frames;
+    std::vector<PointCloudXYZPtr> pointcloud_frames;
     while(app && count) {
 
         auto frames = pipe.wait_for_frames(); //Wait for the next set of frames from the camera
@@ -179,11 +179,11 @@ std::vector<PC_SIMPLE> Scanner::capture_FramesXYZ(bool show,int count) try
 
         points = pc.calculate(depth);
 
-        PC_SIMPLE::Ptr pcl_points = pcl_helpers::pc_toPCL(points);
+        PointCloudXYZPtr pcl_points = pcl_helpers::pc_toPCL(points);
     
         if(show)
             draw_pointcloud(app.width(),app.height(),app_state,points);
-        pointcloud_frames.push_back(*pcl_points);
+        pointcloud_frames.push_back(pcl_points);
         count--;
 
     }
@@ -201,7 +201,7 @@ std::vector<PC_SIMPLE> Scanner::capture_FramesXYZ(bool show,int count) try
 }
 
 
-PC_RGB::Ptr Scanner::capture_FrameXYZRGB(bool show) try
+PointCloudXYZRGBPtr Scanner::capture_FrameXYZRGB(bool show) try
 {
     window app(window_width,window_height, window_name.c_str());
     glfw_state app_state;
@@ -261,7 +261,7 @@ PC_RGB::Ptr Scanner::capture_FrameXYZRGB(bool show) try
     points = pc.calculate(depth);
     
     //Convert generated Point Cloud to PCL Formatting
-    PC_RGB::Ptr pcl_points = pcl_helpers::pcRGB_toPCL(points,color);
+    PointCloudXYZRGBPtr pcl_points = pcl_helpers::pcRGB_toPCL(points,color);
 
     while(app && show){
         draw_pointcloud_pcl(app.width(),app.height(),app_state,pcl_points);
@@ -316,7 +316,7 @@ void Scanner::pointcloud_activateCamera() try
         //Upload the color frame to OpenGL
         app_state.tex.upload(color);
 
-        PC_RGB::Ptr points_pcl = pcl_helpers::pcRGB_toPCL(points,color);
+        PointCloudXYZRGBPtr points_pcl = pcl_helpers::pcRGB_toPCL(points,color);
         draw_pointcloud_pcl(app.width(),app.height(),app_state,points_pcl);
     }
 
@@ -601,7 +601,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 
 void Scanner::view(PolygonMesh& mesh)
 {
-    pcl_helpers::view(mesh);
+    pcl_helpers::view(mesh,1.0f,1.0f,1.0f);
 }
 
 std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
@@ -643,8 +643,8 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& so
 
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
-
-    test_cloud_random_shift(dynamicCloud);
+    
+    RotateAndTranslateZ(dynamicCloud,45,Eigen::Vector3f{0.f,1.5f,0.4f});
     auto quick_look = dynamicCloud;
     for(int i = 0; i < staticCloud.size(); i++) {
         quick_look.push_back(staticCloud[i]);

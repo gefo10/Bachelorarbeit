@@ -11,16 +11,18 @@
 extern const double eps;
 extern double error;
 extern int max_iterations;
+extern int maxPoints;
 
-
-void icp(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud,const int maxIterations=max_iterations);
-void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const int maxIterations=max_iterations);
+//void icp(std::vector<Point*>& sourceCloud,std::vector<Point*>& targetCloud,const int maxIterations=max_iterations);
+void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const int maxIterations=max_iterations,int maxPoints=maxPoints);
 Point computeCloudMean(std::vector<Point*>& cloud);
 Point computeCloudMean(std::vector<Point>& cloud);
 double compute_error(Point& targetPoint, Point& sourcePoint, Eigen::Matrix4f rotationMatrix, Eigen::Vector3f translationVector,Eigen::Vector3f targetMean_eigen);
 void rotate(Point& p, Eigen::Matrix3f rotationMatrix);
 void translate(Point& p, Eigen::Vector3f translationVector);
-void test_cloud_random_shift(std::vector<Point>& cloud);
+void RotateAndTranslateX(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+void RotateAndTranslateY(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+void RotateAndTranslateZ(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
 
 
 template<typename PointT>

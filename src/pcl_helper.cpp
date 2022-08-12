@@ -720,9 +720,9 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
         std::cout << "Using surface method: poisson ..." << std::endl;
 
         int nThreads=8;
-        int setKsearch=10;
-        int depth=7;
-        float pointWeight=2.0;
+        int setKsearch=9;
+        int depth=9;
+        float pointWeight=4.0;
         float samplePNode=1.5;
         float scale=1.1;
         int isoDivide=8;
@@ -757,7 +757,6 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
         std::cout << "Select: \n'1' for surface poisson method \n '2' for surface gp3 method " << std::endl;
         std::exit(-1);
      }
-     pcl::io::saveOBJFile("poisson_test.obj",mesh);
 
 }
 

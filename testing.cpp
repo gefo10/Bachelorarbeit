@@ -57,15 +57,38 @@ void testKdTree()
 }
 
 
+void testMeshCreation()
+{
+ 	// std::string model("../spartan_recap2.ply");
+   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+   Scanner sc("../config/defaultConfig.json");
+   sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud);
+   //sc.load_ply<pcl::PointXYZRGB>("../raptor-model/source/raptor.ply",cloud);
+
+
+   sc.view(cloud);
+   
+   //auto poly1 = sc.gp3Normal_reconstruction(cloud);
+   //sc.view(poly1);
+   //auto poly2 = sc.gp3Mls_reconstruction(cloud);
+   //sc.view(poly2);
+   auto poly3 = sc.poissonNormal_reconstruction(cloud);
+   sc.view(poly3);
+   //auto poly4 = sc.poissonMls_reconstruction(cloud);
+   //sc.view(poly4);
+}
+
 void testICP() 
 {
  	// std::string model("../spartan_recap2.ply");
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud2 (new pcl::PointCloud<pcl::PointXYZRGB>);
 
-   
+   std::cout << std::fmod(-359.0,360.0) << std::endl;
    Scanner sc("../config/defaultConfig.json");
    sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud);
+
    sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud2);
    for(int i = 0; i < cloud2->points.size(); i++)
    {
@@ -174,8 +197,8 @@ void testPlaneDetection()
 
     Scanner sc("../config/defaultConfig.json");
 
-    sc.load_pcd<pcl::PointXYZRGB>("plane_only1.pcd",cloud);
-    sc.load_pcd<pcl::PointXYZRGB>("plane_with_obj1.pcd",cloud2);
+    sc.load_pcd<pcl::PointXYZRGB>("../data/plane_only0.pcd",cloud);
+    sc.load_pcd<pcl::PointXYZRGB>("../data/plane_with_obj0.pcd",cloud2);
     sc.view(cloud2); 
     sc.view(cloud);
     //sc.view(cloud2);
@@ -198,7 +221,8 @@ auto back = result;
 
 seg2 = pcl_helpers::plane_detection<pcl::PointXYZRGB>(result,1e-2f,5000);
 result = seg2.second;
-
+sc.view(result);
+pcl_helpers::statistical_removal(result,100,1e-4f);
 sc.ransac_SVD<pcl::PointXYZRGB>(result,plane);
 sc.view(result);
 //auto aligned =sc.align_ICP(result,back);
@@ -254,14 +278,68 @@ sc.view(cloud2);
 
 }
 
+
+void showVisualizer()
+{
+       pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    Scanner sc("../config/defaultConfig.json");
+
+   // sc.load_pcd<pcl::PointXYZRGB>("../data/test_ransac_obj2.pcd",cloud);
+   sc.load_ply<pcl::PointXYZRGB>("../elephant-model/elephant.ply",cloud);
+     sc.view(cloud);
+
+}
+
+void saveData()
+{
+    
+    Scanner sc("../config/defaultConfig.json");
+
+    std::string name{""};
+    auto frame_0degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_0degree.pcd",frame_0degree);
+   
+    auto frame_45degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_45degree.pcd",frame_0degree);
+    
+    auto frame_90degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_90degree.pcd",frame_0degree);
+    
+    auto frame_135degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_135degree.pcd",frame_0degree);
+    
+    auto frame_180degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_180degree.pcd",frame_0degree);
+
+    auto frame_225degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_225degree.pcd",frame_0degree);
+    
+    auto frame_270degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_270degree.pcd",frame_0degree);
+    
+    auto frame_315degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_315degree.pcd",frame_0degree);
+
+    
+    auto frame_360degree = sc.capture_FrameXYZRGB(true);
+    sc.save_pcd<PointXYZRGB>(name + "_360degree.pcd",frame_0degree);
+
+
+
+
+
+}
 int main(int argc, char** argv) {
    	//testRANSAC();
     //testKdTree();
     //testRansac2();
     //testICP();
+    showVisualizer();
+    //testMeshCreation();
    // testRansacPCL();
-	testVectorResize();
-    testPlaneDetection();
+	//testVectorResize();
+    //testPlaneDetection();
 	return EXIT_SUCCESS;
 }
 

@@ -149,11 +149,13 @@ void Renderer::DrawPoints(std::vector<Point>& points)
     float pointSize =10.0f;// _window->GetCamData().radius;//_window->GetWidth()/640;
 
     double lastTime = glfwGetTime();
-    model =  model *  glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,1.0f,0.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,0.0f,1.0f)) * glm::scale(glm::mat4(1.0f),glm::vec3(5.f,5.f,5.f));
+
+    //model =  model *  glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,1.0f,0.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,0.0f,1.0f)) * glm::scale(glm::mat4(1.0f),glm::vec3(5.f,5.f,5.f));
+    //model =  model *  glm::rotate(glm::mat4(1.0f),glm::radians(180.0f),glm::vec3(0.0f,1.0f,0.0f)) * glm::scale(glm::mat4(1.0f),glm::vec3(5.f,5.f,5.f));
 
     glPointSize(3 *(_window->GetWidth() /  _window->GetHeight()));
     //glPointSize(pointSize);
-    //model = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f,0.0f,2.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(0.f,1.0f,0.f))*  glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(1.f,0.0f,0.f))*glm::scale(glm::mat4(1.0f),glm::vec3(1.0f,1.0f,1.0f));
+    model = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f,0.0f,2.0f)) * glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(0.f,1.0f,0.f))*  glm::rotate(glm::mat4(1.0f),glm::radians(15.f),glm::vec3(1.f,0.0f,0.f))*glm::scale(glm::mat4(1.0f),glm::vec3(1.0f,1.0f,1.0f));
     while(!_window->shouldClose()){
        
         _window->clearScreen(); 

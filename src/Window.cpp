@@ -53,7 +53,7 @@ Window::Window(int width, int height, const char* title)
      glfwSetScrollCallback(_window,OnMouseScroll);
      
 
-   //  glfwSetInputMode(_window,GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+     glfwSetInputMode(_window,GLFW_CURSOR, GLFW_CURSOR_DISABLED);
      glfwSetCursorPos(_window,_width /2.0f, _height /2.0f);
 
      glewExperimental = GL_TRUE;
@@ -99,7 +99,7 @@ void Window::OnWindowSize(GLFWwindow* window,int width, int height)
      CamData& camData = *(CamData*) glfwGetWindowUserPointer(window);
      *camData.width = width;
      *camData.height = height;
-     camData.projection = glm::perspective(glm::radians(60.0f), static_cast<float>( width)/static_cast<float>(height),0.01f,10.0f);
+     camData.projection = glm::perspective(glm::radians(60.0f), static_cast<float>( width)/static_cast<float>(height),0.01f,2000.0f);
 }
 //########################################################
 //Handles mouse movement (rotating and zooming for camera)

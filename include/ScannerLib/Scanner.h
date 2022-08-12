@@ -3,7 +3,6 @@
 #include <GL/glew.h>
 #include <ScannerLib/openGLPointCloud.hpp>
 
-#include <ScannerLib/JsonParser.h>
 //#include <pcl/point_types.h>
 //#include <pcl/point_cloud.h>
 #include <vector>
@@ -14,6 +13,7 @@
 //#include <ScannerLib/Window.h>
 #include <ScannerLib/Renderer.h>
 //#include <pcl/PolygonMesh.h>
+#include <ScannerLib/JsonParser.h>
 
 using PolygonMesh = pcl::PolygonMesh;
 //void register_glfw_callbacks(window& app, glfw_state& app_state);
@@ -56,16 +56,16 @@ class Scanner {
     //################################################
     //use Realsense Camera to capture exactly 1 frame 
     //#################################################
-    PC_SIMPLE::Ptr capture_FrameXYZ(bool);
-    PC_RGB::Ptr capture_FrameXYZRGB(bool);
+    PointCloudXYZPtr capture_FrameXYZ(bool);
+    PointCloudXYZRGBPtr capture_FrameXYZRGB(bool);
     //######################################################
     
 
     //####################################################################################
     //Use Realsense Camera to capture multiple frames (capture until the window is closed)
     //########################################################################################
-    std::vector<PC_SIMPLE> capture_FramesXYZ(bool,int count);
-    std::vector<PC_RGB::Ptr> capture_FramesXYZRGB(bool,int count);
+    std::vector<PointCloudXYZPtr> capture_FramesXYZ(bool,int count);
+    std::vector<PointCloudXYZRGBPtr> capture_FramesXYZRGB(bool,int count);
     //########################################################################################
     
      void load_obj(std::string path);
