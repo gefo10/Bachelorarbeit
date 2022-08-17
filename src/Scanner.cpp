@@ -232,21 +232,21 @@ PointCloudXYZRGBPtr Scanner::capture_FrameXYZRGB(bool show) try
     rs2::device selected_device = selection.get_device();
     auto depth_sensor = selected_device.first<rs2::depth_sensor>();
     
-    if(depth_sensor.supports(RS2_OPTION_LASER_POWER))
-    {
-        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED,1.f); //Enable emmiter
-        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED,0.f); //Disable emitter
-
-    }
-    if(depth_sensor.supports(RS2_OPTION_LASER_POWER))
-    {
-        //Query min and max values
-        auto range = depth_sensor.get_option_range(RS2_OPTION_LASER_POWER);
-        depth_sensor.set_option(RS2_OPTION_LASER_POWER,range.max); //Set max power
-        depth_sensor.set_option(RS2_OPTION_LASER_POWER,0.f); //Disable laser
-
-    }
-
+//    if(depth_sensor.supports(RS2_OPTION_LASER_POWER))
+//    {
+//        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED,1.f); //Enable emmiter
+//        depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED,0.f); //Disable emitter
+//
+//    }
+//    if(depth_sensor.supports(RS2_OPTION_LASER_POWER))
+//    {
+//        //Query min and max values
+//        auto range = depth_sensor.get_option_range(RS2_OPTION_LASER_POWER);
+//        depth_sensor.set_option(RS2_OPTION_LASER_POWER,range.max); //Set max power
+//        depth_sensor.set_option(RS2_OPTION_LASER_POWER,0.f); //Disable laser
+//
+//    }
+//
     // Wait for frames from the camera to settle
     for (int i = 0; i < 30; i++) {
         auto frames = pipe.wait_for_frames(); //Drop several frames for auto-exposure
@@ -485,7 +485,7 @@ std::vector<std::vector<Point>> Scanner::convert_pcl_points(std::vector<pcl::Poi
 void Scanner::load_obj(std::string path) 
 {
         Window app(window_width,window_height,window_name.c_str());
-        app.clearScreen();
+        app.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
         Renderer re(app);
         
         //glfw_state app_state;
@@ -497,7 +497,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud)
      auto points = convert_pcl_points(cloud);
 
         Window w(window_width,window_height,window_name.c_str());
-        w.clearScreen();
+        w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
         Renderer re(w);
         re.DrawLine(Point{-0.75f,0.f,0.f}, Point{0.77f,0.f,0.f});
@@ -509,7 +509,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 {
         auto points = convert_pcl_points(cloud);
         Window w(window_width,window_height,window_name.c_str());
-        w.clearScreen();
+        w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
         Renderer re(w);
         re.DrawPoints(points);
@@ -520,7 +520,7 @@ void Scanner::view(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cloud)
 {
      auto frames = convert_pcl_points(cloud);
      Window w(window_width,window_height,window_name.c_str());
-     w.clearScreen();
+     w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
      Renderer re(w);
      re.DrawPoints(frames);
@@ -530,7 +530,7 @@ void Scanner::view(std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cloud)
 void Scanner::view(std::vector<Point>& cloud)
 {
     Window w(window_width,window_height,window_name.c_str());
-    w.clearScreen();
+    w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
     Renderer re(w);
     
@@ -542,7 +542,7 @@ void Scanner::view(std::vector<pcl::PointCloud<pcl::PointXYZ>>& cloud)
 {
      auto frames = convert_pcl_points(cloud);
      Window w(window_width,window_height,window_name.c_str());
-     w.clearScreen();
+     w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
      Renderer re(w);
      re.DrawPoints(frames);
@@ -551,7 +551,7 @@ void Scanner::view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>& cloud)
 {
      auto frames = convert_pcl_points(cloud);
      Window w(window_width,window_height,window_name.c_str());
-     w.clearScreen();
+     w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
      Renderer re(w);
      re.DrawPoints(frames);
@@ -560,7 +560,7 @@ void Scanner::view(std::vector<pcl::PointCloud<pcl::PointXYZRGB>>& cloud)
 {
     std::vector<std::vector<Point>> frames = convert_pcl_points(cloud);
      Window w(window_width,window_height,window_name.c_str());
-     w.clearScreen();
+     w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
      Renderer re(w);
      re.DrawPoints(frames);
@@ -571,7 +571,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZ>& cloud)
 {
         auto points = convert_pcl_points(cloud);
         Window w(window_width,window_height,window_name.c_str());
-        w.clearScreen();
+        w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
         Renderer re(w);
         re.DrawPoints(points);
@@ -580,7 +580,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZ>& cloud)
 void Scanner::view(std::vector<Point*>& frames)
 {
         Window w(window_width,window_height,window_name.c_str());
-        w.clearScreen();
+        w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
         Renderer re(w);
         re.DrawPoints(frames);
@@ -592,7 +592,7 @@ void Scanner::view(pcl::PointCloud<pcl::PointXYZRGB>& cloud)
 {
         auto points = convert_pcl_points(cloud);
         Window w(window_width,window_height,window_name.c_str());
-        w.clearScreen();
+        w.clearScreen(config.GetRedColor(),config.GetGreenColor(),config.GetBlueColor());
 
         Renderer re(w);
         re.DrawPoints(points);
@@ -604,7 +604,7 @@ void Scanner::view(PolygonMesh& mesh)
     pcl_helpers::view(mesh,1.0f,1.0f,1.0f);
 }
 
-std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
+pcl::PointCloud<pcl::PointXYZ>::Ptr Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud)
 {
     pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
     pcl_helpers::statistical_removal(targetCloud,100,0.8f);
@@ -615,11 +615,27 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourc
     icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
+    
+    
+    pcl::PointCloud<PointXYZ>::Ptr result (new pcl::PointCloud<PointXYZ>);
+    for(auto& p : dynamicCloud)
+    {
+        PointXYZ new_p;
+        new_p.x = p.x;
+        new_p.y = p.y;
+        new_p.z = p.z;
+        //new_p.r = static_cast<uint8_t>(p.r * 255);
+        //new_p.g = static_cast<uint8_t>(p.g * 255);
+        //new_p.b = static_cast<uint8_t>(p.b * 255);
+        result->points.push_back(new_p);
 
-    return dynamicCloud;
+    }
+
+    //return dynamicCloud;
+    return result;
 }
 
-std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+pcl::PointCloud<pcl::PointXYZ> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
     //pcl_helpers::statistical_removal(sourceCloud);
     //pcl_helpers::statistical_removal(targetCloud);
@@ -630,11 +646,26 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceClou
     icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
+    
+    pcl::PointCloud<PointXYZ>::Ptr result (new pcl::PointCloud<PointXYZ>);
+    for(auto& p : dynamicCloud)
+    {
+        PointXYZ new_p;
+        new_p.x = p.x;
+        new_p.y = p.y;
+        new_p.z = p.z;
+        //new_p.r = static_cast<uint8_t>(p.r * 255);
+        //new_p.g = static_cast<uint8_t>(p.g * 255);
+        //new_p.b = static_cast<uint8_t>(p.b * 255);
+        result->points.push_back(new_p);
 
-    return dynamicCloud;
+    }
+
+    
+    //return dynamicCloud;
+    return *result;
 }
-
-std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
 {
     //pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
     //pcl_helpers::statistical_removal(targetCloud,100,0.8f);
@@ -644,7 +675,8 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& so
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
     
-    RotateAndTranslateZ(dynamicCloud,45,Eigen::Vector3f{0.f,1.5f,0.4f});
+
+    //RotateAndTranslateZ(dynamicCloud,60,Eigen::Vector3f{0.f,1.5f,0.4f});
     auto quick_look = dynamicCloud;
     for(int i = 0; i < staticCloud.size(); i++) {
         quick_look.push_back(staticCloud[i]);
@@ -654,14 +686,90 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& so
 
     //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
 
+
     icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+    targetCloud->points.clear();
+    sourceCloud->points.clear();
+   
     for(int i = 0; i < staticCloud.size(); i++) {
         dynamicCloud.push_back(staticCloud[i]);
     }
+    pcl::PointCloud<PointXYZRGB>::Ptr result (new pcl::PointCloud<PointXYZRGB>);
+    for(auto& p : dynamicCloud)
+    {
+        PointXYZRGB new_p;
+        new_p.x = p.x; 
+        new_p.y = p.y; 
+        new_p.z = p.z; 
+        new_p.r = static_cast<uint8_t>(p.r * 255); 
+        new_p.g = static_cast<uint8_t>(p.g * 255); 
+        new_p.b = static_cast<uint8_t>(p.b * 255);
+        result->points.push_back(new_p);
 
-    return dynamicCloud;
+    }
+
+
+
+    return result;
 }
-std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
+
+//std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud)
+//{
+//    //pcl_helpers::statistical_removal(sourceCloud,100,0.8f);
+//    //pcl_helpers::statistical_removal(targetCloud,100,0.8f);
+//
+//    
+//
+//    auto dynamicCloud = convert_pcl_points(sourceCloud);
+//    auto staticCloud = convert_pcl_points(targetCloud);
+//    
+//
+//    //RotateAndTranslateZ(dynamicCloud,60,Eigen::Vector3f{0.f,1.5f,0.4f});
+//    auto quick_look = dynamicCloud;
+//    for(int i = 0; i < staticCloud.size(); i++) {
+//        quick_look.push_back(staticCloud[i]);
+//    }
+//    this->view(quick_look);
+//
+//
+//    //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
+//
+//
+//    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+//    targetCloud->points.clear();
+//    sourceCloud->points.clear();
+//    for(auto& p : staticCloud)
+//    {
+//        PointXYZRGB new_p;
+//        new_p.x = p.x; 
+//        new_p.y = p.y; 
+//        new_p.z = p.z; 
+//        new_p.r = static_cast<uint8_t>(p.r * 255); 
+//        new_p.g = static_cast<uint8_t>(p.g * 255); 
+//        new_p.b = static_cast<uint8_t>(p.b * 255);
+//        sourceCloud->points.push_back(new_p);
+//
+//    } for(auto& p : dynamicCloud)
+//    {
+//        PointXYZRGB new_p;
+//        new_p.x = p.x; 
+//        new_p.y = p.y; 
+//        new_p.z = p.z; 
+//        new_p.r = static_cast<uint8_t>(p.r * 255); 
+//        new_p.g = static_cast<uint8_t>(p.g * 255); 
+//        new_p.b = static_cast<uint8_t>(p.b * 255);
+//        targetCloud->points.push_back(new_p);
+//
+//    }
+//    for(int i = 0; i < staticCloud.size(); i++) {
+//        dynamicCloud.push_back(staticCloud[i]);
+//    }
+//
+//
+//
+//    return dynamicCloud;
+//}
+pcl::PointCloud<pcl::PointXYZRGB> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud)
 {
     //pcl_helpers::statistical_removal(sourceCloud);
     //pcl_helpers::statistical_removal(targetCloud);
@@ -672,8 +780,24 @@ std::vector<Point> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceC
     icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
+   
+    pcl::PointCloud<PointXYZRGB>::Ptr result (new pcl::PointCloud<PointXYZRGB>);
 
-    return dynamicCloud;  
+    for(auto& p : dynamicCloud)
+    {
+        PointXYZRGB new_p;
+        new_p.x = p.x;
+        new_p.y = p.y;
+        new_p.z = p.z;
+        new_p.r = static_cast<uint8_t>(p.r * 255);
+        new_p.g = static_cast<uint8_t>(p.g * 255);
+        new_p.b = static_cast<uint8_t>(p.b * 255);
+        result->points.push_back(new_p);
+
+    }
+
+    //return dynamicCloud;  
+    return *result;
 }
 
 std::vector<Point> Scanner::align_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
@@ -844,89 +968,270 @@ pcl::PolygonMesh Scanner::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ
 {   
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,1,mesh);
-    return mesh;
+
+    return poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(), 
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(), 
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+;
 }
 pcl::PolygonMesh Scanner::gp3Normal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {   
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,1,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::gp3Normal_reconstruction(std::vector<Point> cloud)
 {   
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction(cloud,2,1,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction(cloud,2,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,2,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::gp3Mls_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,2,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::gp3Mls_reconstruction(std::vector<Point> cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction(cloud,2,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction(cloud,2,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,1,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::poissonNormal_reconstruction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,1,mesh); 
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::poissonNormal_reconstruction(std::vector<Point> cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction(cloud,1,1,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction(cloud,1,1,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 pcl::PolygonMesh Scanner::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZRGB,PointXYZRGBNormal>(cloud,1,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 
@@ -934,9 +1239,27 @@ pcl::PolygonMesh Scanner::poissonMls_reconstruction(pcl::PointCloud<pcl::PointXY
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction<PointXYZ,PointNormal>(cloud,1,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 
@@ -944,37 +1267,79 @@ pcl::PolygonMesh Scanner::poissonMls_reconstruction(std::vector<Point> cloud)
 {
     using namespace pcl;
     using namespace pcl_helpers;
-    PolygonMesh mesh;
-    poisson_gp3_reconstruction(cloud,1,2,mesh);
-    return mesh;
+    return poisson_gp3_reconstruction(cloud,1,2,
+                                       config.GetMLSRadiusSearch(),
+                                       config.GetNEKSearch(),
+                                       config.GetGP3KSearch(),
+                                       config.GetGP3MU(),
+                                       config.GetGP3SearchRadius(),
+                                       config.GetGP3MaxNearestNeighbors(),
+                                       config.GetGP3NormalConsistency(),
+                                       config.GetPoissonNThreads(),
+                                       config.GetPoissonKSearch(),
+                                       config.GetPoissonDepth(),
+                                       config.GetPoissonPointWeight(),
+                                       config.GetPoissonSamplePNode(),
+                                       config.GetPoissonScale(),
+                                       config.GetPoissonIsoDivide(),
+                                       config.GetPoissonConfidence(),
+                                       config.GetPoissonOutputPolygons(),
+                                       config.GetPoissonManifold(),
+                                       config.GetPoissonSolverDivide(),
+                                       config.GetPoissonDegree());
+
 
 }
 
 void Scanner::runPipeline()
 {
     //capture plane data
-    auto frames_plane = this->capture_FramesXYZRGB(true,2);
+    auto plane = this->capture_FrameXYZRGB(true);
 
-    auto frames_object = this->capture_FramesXYZRGB(true,10);
+    auto frames_object_0degree   = this->capture_FrameXYZRGB(true);
+    auto frames_object_45degree  = this->capture_FrameXYZRGB(true);
+    auto frames_object_90degree  = this->capture_FrameXYZRGB(true);
+    auto frames_object_135degree = this->capture_FrameXYZRGB(true);
+    auto frames_object_180degree = this->capture_FrameXYZRGB(true);
+    auto frames_object_225degree = this->capture_FrameXYZRGB(true);
+    auto frames_object_270degree = this->capture_FrameXYZRGB(true);
+    auto frames_object_315degree = this->capture_FrameXYZRGB(true);
+    auto frames_object_360degree = this->capture_FrameXYZRGB(true);
+    
 
+    std::vector<PointCloudXYZRGBPtr> object_scans {
+        frames_object_0degree,
+        frames_object_45degree,  
+        frames_object_90degree, 
+        frames_object_135degree, 
+        frames_object_180degree,
+        frames_object_225degree,
+        frames_object_270degree,
+        frames_object_315degree,
+        frames_object_360degree
+    };
 
     //perform Ransac cloud segmentation
 
-    for(int i = 0; i< frames_plane.size(); i++)
+    for(int i = 0; i< object_scans.size(); i++)
     {
-        for(int j = 0; j < frames_object.size(); j++)
-            this->ransac_SVD<pcl::PointXYZRGB>(frames_object[j],frames_plane[i]);
+            this->ransac_SVD<pcl::PointXYZRGB>(object_scans[i],plane);
 
     }
 
 
     //convert to vector<Points>
-   auto points_converted = convert_pcl_points(frames_object);
+
+   if(object_scans.size() < 1) 
+       throw std::logic_error("no scans available\n");
+   auto aligned_pc = object_scans[0];
 
    //ICP
-   auto& aligned_cloud = this->align_ICP(points_converted);
+   for(int i = 1; i < object_scans.size(); i++)
+    aligned_pc = this->align_ICP(object_scans[i],aligned_pc);
 
-   PolygonMesh mesh = this->gp3Mls_reconstruction(aligned_cloud);
+
+   PolygonMesh mesh = this->gp3Mls_reconstruction(aligned_pc);
 
    this->save_obj(config.GetSavePath(),mesh);
 

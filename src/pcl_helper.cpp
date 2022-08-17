@@ -567,7 +567,29 @@ void pcl_helpers::downsample(Cloud_simplePtr& input)
 
 
 
-void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surface_mode,int normal_method,pcl::PolygonMesh& mesh)
+pcl::PolygonMesh pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, 
+                                                    int surface_mode,
+                                                    int normal_method,
+                                                    float mls_radius_search, //default 0.03
+                                                    int normal_estim_KSearch, // default 20
+                                                    int gp3_KSearch,         //default 100
+                                                    int gp3_SearchRadius,     //default 10
+                                                    int gp3_MU,              //default 5
+                                                    int gp3_maxNearestNeighbors,//default 100
+                                                    bool gp3_NormalConsistency,//default false
+                                                    int poisson_nThreads, //default 8
+                                                    int poisson_KSearch, //default 10
+                                                    int poisson_depth,   //default 7
+                                                    float poisson_PointWeight,//default 2.0
+                                                    float poisson_samplePNode,//default 1.5
+                                                    float poisson_scale,      //default 1.1
+                                                    int poisson_isoDivide,    //default 8
+                                                    bool poisson_confidence,  //default true
+                                                    bool poisson_outputPolygons, //default true
+                                                    bool poisson_manifold,      //default true
+                                                    int poisson_solverDivide,   //default 8
+                                                    int poisson_degree)       //default 2
+
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -631,14 +653,8 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
        //Set parameters
        mls.setComputeNormals(true);
        mls.setInputCloud(cloudTranslated);
-      // mls.setDilationIterations(10);
-       //mls.setDilationVoxelSize(0.5);
-       //mls.setSqrGaussParam(2.0);
-       //mls.setUpsamplingRadius(5);
-       //mls.setPolynomialOrder (2);
-       //mls.setPointDensity(30);
        mls.setSearchMethod(kdtree_for_points);
-       mls.setSearchRadius(0.03);
+       mls.setSearchRadius(mls_radius_search);
        mls.process(*mls_points);
 
        pcl::PointCloud<pcl::PointXYZRGB>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -664,7 +680,7 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
 
        n.setInputCloud(cloudTranslated);
        n.setSearchMethod(kdtree_for_points);
-       n.setKSearch(20); //It was 20
+       n.setKSearch(normal_estim_KSearch); //It was 20
        n.compute(*normals);//Normals are estimated using standard method.
 
        //pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointNormal> ());
@@ -683,15 +699,17 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
 
      std::cout << "Applying surface meshing...";
 
+     pcl::PolygonMesh mesh;
+
      if(gp3_mode){
 
        std::cout << "Using surface method: gp3 ..." << std::endl;
 
-       int searchK = 100; //was 100
-       int search_radius = 10; //was 10
-       int setMU = 5; //was 5
-       int maxiNearestNeighbors = 100; //was 100
-       bool normalConsistency = false;
+       int searchK = gp3_KSearch; //was 100
+       int search_radius = gp3_SearchRadius; //was 10
+       int setMU = gp3_MU; //was 5
+       int maxiNearestNeighbors = gp3_maxNearestNeighbors; //was 100
+       bool normalConsistency = gp3_NormalConsistency;
 
        pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
 
@@ -719,24 +737,24 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
 
         std::cout << "Using surface method: poisson ..." << std::endl;
 
-        int nThreads=8;
-        int setKsearch=9;
-        int depth=9;
-        float pointWeight=4.0;
-        float samplePNode=1.5;
-        float scale=1.1;
-        int isoDivide=8;
-        bool confidence=true;
-        bool outputPolygons=true;
-        bool manifold=true;
-        int solverDivide=8;
-
+        int nThreads = poisson_nThreads;
+        int setKsearch= poisson_KSearch;
+        int depth= poisson_depth;
+        float pointWeight= poisson_PointWeight;
+        float samplePNode= poisson_samplePNode;
+        float scale= poisson_scale;
+        int isoDivide= poisson_isoDivide;
+        bool confidence=poisson_confidence;
+        bool outputPolygons=poisson_outputPolygons;
+        bool manifold=poisson_manifold;
+        int solverDivide=poisson_solverDivide;
+        int degree = poisson_degree;
         pcl::Poisson<pcl::PointXYZRGBNormal> poisson;
 
         poisson.setDepth(depth);//9
         poisson.setInputCloud(cloud_with_normals);
         poisson.setPointWeight(pointWeight);//4
-        poisson.setDegree(2);
+        poisson.setDegree(degree);
         poisson.setSamplesPerNode(samplePNode);//1.5
         poisson.setScale(scale);//1.1
         poisson.setIsoDivide(isoDivide);//8
@@ -757,6 +775,8 @@ void pcl_helpers::poisson_gp3_reconstruction(std::vector<Point> cloud, int surfa
         std::cout << "Select: \n'1' for surface poisson method \n '2' for surface gp3 method " << std::endl;
         std::exit(-1);
      }
+
+     return mesh;
 
 }
 

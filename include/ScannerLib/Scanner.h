@@ -81,11 +81,12 @@ class Scanner {
     //Overloaded functions for the ICP algorithm
     //####################################################################################################################
 
-    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
-    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr align_ICP(pcl::PointCloud<pcl::PointXYZ>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZ>::Ptr& targetCloud);
+    pcl::PointCloud<pcl::PointXYZ> align_ICP(pcl::PointCloud<pcl::PointXYZ>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
 
-    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
-    std::vector<Point> align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr align_ICP(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
+    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr align_ICP2(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& sourceCloud,pcl::PointCloud<pcl::PointXYZRGB>::Ptr& targetCloud);
+    pcl::PointCloud<pcl::PointXYZRGB> align_ICP(pcl::PointCloud<pcl::PointXYZRGB>& sourceCloud,pcl::PointCloud<pcl::PointXYZ>& targetCloud);
     
     std::vector<Point> align_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud);
     std::vector<Point>& align_ICP(std::vector<std::vector<Point>>& frames);
@@ -147,15 +148,30 @@ class Scanner {
     //Randsac using SVD 
     //######################################################
     template<typename PointT>
-    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, int numPoints, float distanceThreshold)
+    void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane, 
+                        float distanceThreshold,int maxIterations,
+                        float distanceThreshold_plane,
+                        int staticRemoval_kPoints,
+                        float staticRemoval_threshold)
     {
-        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,numPoints,distanceThreshold);
+        //otherwise strange results -> remove noisy background
+        this->filterZ<PointT>(cloud,0.01f,2.f);
+        this->filterZ<PointT>(plane,0.01f,2.f);
+
+        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,distanceThreshold,maxIterations,distanceThreshold_plane);
+        pcl_helpers::statistical_removal(cloud,staticRemoval_kPoints,staticRemoval_threshold); //100 0.01
+
     }
 
     template<typename PointT>
     void ransac_SVD(typename pcl::PointCloud<PointT>::Ptr cloud,typename pcl::PointCloud<PointT>::Ptr plane)
     {
-        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,config.GetNumberOfPointsRansac(),config.GetDistanceThresholdRansac());
+
+        this->filterZ<PointT>(cloud,0.01f,2.f);
+        this->filterZ<PointT>(plane,0.01f,2.f);
+        pcl_helpers::RANSAC_SVD<PointT>(cloud,plane,config.GetDistanceThresholdRansac(),config.GetMaxIterationsRansac(),config.GetDistanceThresholdPlaneRansac());
+        pcl_helpers::statistical_removal(cloud,config.GetStatisticalRemovalKPoints(),config.GetStatisticalRemovalTheshold());
+
     }
 
 
@@ -167,7 +183,7 @@ class Scanner {
     {
         if(file_name.find(".pcd") == std::string::npos)
             file_name += ".pcd";
-        pcl::io::savePCDFileASCII(file_name.c_str(), frame);       
+        pcl::io::savePCDFileASCII(file_name.c_str(), *frame);       
     }
     
     template <typename PointT>
@@ -175,7 +191,7 @@ class Scanner {
     {
         for(int i =0 ; i < frames.size(); i++){
             std::string file_name_final = file_name + "_" + std::to_string(i);
-            pcl::io::savePCDFileASCII(file_name_final.c_str(), frames[i]);       
+            pcl::io::savePCDFileASCII(file_name_final.c_str(), *frames[i]);       
         }
     }
 
@@ -192,9 +208,9 @@ class Scanner {
     }
     
     template<typename PointT>
-    void save_ply(const std::string file_name,typename pcl::PointCloud<PointT>& frame)
+    void save_ply(const std::string file_name,typename pcl::PointCloud<PointT>::Ptr& frame)
     {
-         pcl::io::savePLYFile(file_name.c_str(),frame);
+         pcl::io::savePLYFile(file_name.c_str(),*frame);
     }
     
     void save_ply(const std::string file_name,PolygonMesh& mesh)

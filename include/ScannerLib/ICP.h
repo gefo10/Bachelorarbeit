@@ -23,6 +23,10 @@ void translate(Point& p, Eigen::Vector3f translationVector);
 void RotateAndTranslateX(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
 void RotateAndTranslateY(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
 void RotateAndTranslateZ(std::vector<Point>& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+void RotateAndTranslateX(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+void RotateAndTranslateY(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+void RotateAndTranslateZ(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,float rotationAngle=0.0, Eigen::Vector3f translation = Eigen::Vector3f::Zero());
+
 
 
 template<typename PointT>

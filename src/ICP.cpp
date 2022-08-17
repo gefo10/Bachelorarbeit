@@ -232,14 +232,15 @@ void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const i
         sourceMean = computeCloudMean(sourceCloud);
 
 
-        for (int i = 0; i <  numRandomSamples; i++)//sourceCloud.size(); i++)
+        for (int i = 0; i <sourceCloud.size(); i++)
         {
+            if(iter == 0) break;
             //std::cout << "point num:" << i << "/" << sourceCloud.size() << std::flush << std::endl;
             int randSample = std::rand() % sourceCloud.size();
             // sample the dynamic point cloud
-            p = sourceCloud[randSample];
+            p = sourceCloud[i];
 
-            bool found = tree->search(p, x,5.0f);
+            bool found = tree->search(p, x,1.0f);
             if(!found) {
                 countSkips++;
                 continue;
@@ -255,7 +256,7 @@ void icp(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud,const i
             error += compute_error(x, p, rotation, translation,targetMean_eigen);
             
         }
-        if(countSkips == numRandomSamples) {
+        if(countSkips == numRandomSamples || iter==0) {
             error =1.0f;
             rotation = Matrix3f::Identity();
         }
@@ -387,7 +388,131 @@ rotationMatrix (2, 2) = std::cos (theta);
 
 }
 
+
+
+
+void RotateAndTranslateX(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,float rotationAngle, Eigen::Vector3f translation)
+{
+    // Defining a rotation matrix and translation vector
+   Eigen::Matrix3f rotationMatrix = Eigen::Matrix3f::Identity ();
+
+  // A rotation matrix (see https://en.wikipedia.org/wiki/Rotation_matrix)
+ // double theta = 45;  // The angle of rotation in radians
+ // transformation_matrix (0, 0) = std::cos (theta);
+ // transformation_matrix (0, 1) = -sin (theta);
+ // transformation_matrix (1, 0) = sin (theta);
+ // transformation_matrix (1, 1) = std::cos (theta);
+  float theta = std::fmod(rotationAngle, 360.0f);  // The angle of rotation in radians
+rotationMatrix (1, 1) = std::cos (theta);
+rotationMatrix (1, 2) = sin (theta);
+rotationMatrix (2, 1) = -sin (theta);
+rotationMatrix (2, 2) = std::cos (theta);
+
+  // A translation on Z axis (0.4 meters)
+  //transformation_matrix (2, 3) = 0.0;
+
+
+   for(auto i = 0 ; i < cloud->points.size(); i++)
+   {
+       //rotate
+            Eigen::Vector3f temp{cloud->points[i].x,cloud->points[i].y,cloud->points[i].z};
+            temp = rotationMatrix * temp;
+
+            cloud->points[i].x = temp(0);
+            cloud->points[i].y = temp(1);
+            cloud->points[i].z = temp(2);
+
+            //translate
+           cloud->points[i].x += translation(0); 
+           cloud->points[i].y += translation(1); 
+           cloud->points[i].z += translation(2); 
+
+   }
+
+}
+
+void RotateAndTranslateY(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud,float rotationAngle, Eigen::Vector3f translation)
+{
+    // Defining a rotation matrix and translation vector
+   Eigen::Matrix3f rotationMatrix = Eigen::Matrix3f::Identity ();
+
+  // A rotation matrix (see https://en.wikipedia.org/wiki/Rotation_matrix)
+ // double theta = 45;  // The angle of rotation in radians
+ // transformation_matrix (0, 0) = std::cos (theta);
+ // transformation_matrix (0, 1) = -sin (theta);
+ // transformation_matrix (1, 0) = sin (theta);
+ // transformation_matrix (1, 1) = std::cos (theta);
+  float theta = std::fmod(rotationAngle, 360.0f);  // The angle of rotation in radians
+rotationMatrix (0, 0) = std::cos (theta);
+rotationMatrix (0, 2) = sin (theta);
+rotationMatrix (2, 0) = -sin (theta);
+rotationMatrix (2, 2) = std::cos (theta);
+
+  // A translation on Z axis (0.4 meters)
+  //transformation_matrix (2, 3) = 0.0;
+
+
+   for(auto i = 0 ; i < cloud->points.size(); i++)
+   {
+       //rotate
+            Eigen::Vector3f temp{cloud->points[i].x,cloud->points[i].y,cloud->points[i].z};
+            temp = rotationMatrix * temp;
+
+            cloud->points[i].x = temp(0);
+            cloud->points[i].y = temp(1);
+            cloud->points[i].z = temp(2);
+
+            //translate
+           cloud->points[i].x += translation(0); 
+           cloud->points[i].y += translation(1); 
+           cloud->points[i].z += translation(2); 
+
+   }
+
+}
+
+void RotateAndTranslateZ(pcl::PointCloud<pcl::PointXYZRGB>::Ptr&  cloud,float rotationAngle, Eigen::Vector3f translation)
+{
+    // Defining a rotation matrix and translation vector
+   Eigen::Matrix3f rotationMatrix = Eigen::Matrix3f::Identity ();
+
+  // A rotation matrix (see https://en.wikipedia.org/wiki/Rotation_matrix)
+ // double theta = 45;  // The angle of rotation in radians
+ // transformation_matrix (0, 0) = std::cos (theta);
+ // transformation_matrix (0, 1) = -sin (theta);
+ // transformation_matrix (1, 0) = sin (theta);
+ // transformation_matrix (1, 1) = std::cos (theta);
+  float theta = std::fmod(rotationAngle,360.0f);  // The angle of rotation in radians
+rotationMatrix (0, 0) = std::cos (theta);
+rotationMatrix (1, 0) = -sin (theta);
+rotationMatrix (0, 1) = sin (theta);
+rotationMatrix (1, 1) = std::cos (theta);
+
+  // A translation on Z axis (0.4 meters)
+  //transformation_matrix (2, 3) = 0.0;
+
+
+   for(auto i = 0 ; i < cloud->points.size(); i++)
+   {
+       //rotate
+            Eigen::Vector3f temp{cloud->points[i].x,cloud->points[i].y,cloud->points[i].z};
+            temp = rotationMatrix * temp;
+
+            cloud->points[i].x = temp(0);
+            cloud->points[i].y = temp(1);
+            cloud->points[i].z = temp(2);
+
+            //translate
+           cloud->points[i].x += translation(0); 
+           cloud->points[i].y += translation(1); 
+           cloud->points[i].z += translation(2); 
+
+   }
+
+}
+
 void RotateAndTranslateZ(std::vector<Point>& cloud,float rotationAngle, Eigen::Vector3f translation)
+
 {
     // Defining a rotation matrix and translation vector
    Eigen::Matrix3f rotationMatrix = Eigen::Matrix3f::Identity ();
