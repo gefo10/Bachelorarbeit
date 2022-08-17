@@ -612,7 +612,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr Scanner::align_ICP(pcl::PointCloud<pcl::Poin
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
    
-    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP(),config.GetMaxPointsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
     
@@ -643,7 +643,7 @@ pcl::PointCloud<pcl::PointXYZ> Scanner::align_ICP(pcl::PointCloud<pcl::PointXYZ>
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
 
-    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP(),config.GetMaxPointsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
     
@@ -687,7 +687,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Scanner::align_ICP(pcl::PointCloud<pcl::P
     //std::cout << "x:" << dynamicCloud[0]->x << " y:" << dynamicCloud[0]->y << " z:" << dynamicCloud[0]->z <<std::endl;
 
 
-    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP(),config.GetMaxPointsICP());
     targetCloud->points.clear();
     sourceCloud->points.clear();
    
@@ -777,7 +777,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Scanner::align_ICP(pcl::PointCloud<pcl::PointX
     auto dynamicCloud = convert_pcl_points(sourceCloud);
     auto staticCloud = convert_pcl_points(targetCloud);
 
-    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP());
+    icp(dynamicCloud,staticCloud,config.GetMaxIterationsICP(),config.GetMaxPointsICP());
     for(int i = 0; i < staticCloud.size(); i++)
         dynamicCloud.push_back(staticCloud[i]);
    
@@ -803,7 +803,7 @@ pcl::PointCloud<pcl::PointXYZRGB> Scanner::align_ICP(pcl::PointCloud<pcl::PointX
 std::vector<Point> Scanner::align_ICP(std::vector<Point>& sourceCloud,std::vector<Point>& targetCloud)
 {
 
-    icp(sourceCloud,targetCloud,config.GetMaxIterationsICP());
+    icp(sourceCloud,targetCloud,config.GetMaxIterationsICP(),config.GetMaxPointsICP());
     for(int i = 0; i < targetCloud.size(); i++)
         sourceCloud.push_back(targetCloud[i]);
 

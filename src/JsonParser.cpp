@@ -9,6 +9,7 @@ JsonParser::JsonParser(std::string filename)
     window_height(720),
     window_name("Pointcloud window"),
     max_iterations_icp(30),
+    max_points_icp(1000),
     distanceThresholdRansac(1e-08),
     maxIterationsRansac(5000),
     distanceThresholdPlane(0.1),
@@ -134,6 +135,13 @@ JsonParser::JsonParser(std::string filename)
             cout << "  max_iterations:" << this->max_iterations_icp << endl;
         } else {
             cout << "  max_iterations_icp not found, using default max_iterations_icp:" << this->max_iterations_icp << endl;
+        }
+        if(content.at("icp").contains("max_points_per_iteration"))
+        {
+            this->max_points_icp= content.at("icp").at("max_points_per_iteration").get<int>();
+            cout << "  max_points_per_iteration:" << this->max_points_icp << endl;
+        } else {
+            cout << "  max_points_per_iteration not found, using default max_points_per_iteration:" << this->max_points_icp << endl;
         }
 
     }

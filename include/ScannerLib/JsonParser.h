@@ -19,13 +19,13 @@ class JsonParser {
         float GetGreenColor() {return g;};
         float GetBlueColor() {return b;};
         int GetMaxIterationsICP() const { return max_iterations_icp; };
+        int GetMaxPointsICP() { return max_points_icp; };
       //  unsigned int GetNumberOfPointsRansac() const { return numPointsRansac; };
         float GetDistanceThresholdRansac() const { return distanceThresholdRansac; };
         int GetMaxIterationsRansac() {return maxIterationsRansac;};
         int GetStatisticalRemovalKPoints() {return statisticalRemoval_KPoints;};
         float GetStatisticalRemovalTheshold() {return statisticalRemoval_threshold;};
         float GetDistanceThresholdPlaneRansac() {return distanceThresholdPlane;};
-
         
         const char* GetSavePath() const { return save_path.c_str(); };
 
@@ -56,6 +56,7 @@ class JsonParser {
         float window_width;
         float window_height;
         int max_iterations_icp;
+        int max_points_icp;
         float r;
         float g;
         float b;
